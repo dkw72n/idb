@@ -1,3 +1,4 @@
+import sys
 from ctypes import *
 from bpylist import archiver, bplist
 import os
@@ -9,14 +10,23 @@ from enum import Enum, IntEnum, IntFlag
 
 # md = cdll.LoadLibrary( "libimobiledevice.dll")
 # md = CDLL(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
-
-libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
-libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist++.dll"))
-libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto-1_1-x64"))
-libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl-1_1-x64.dll"))
-libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.dll"))
-libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
-
+if sys.platform == 'win32':
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
+    libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist++.dll"))
+    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto-1_1-x64"))
+    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl-1_1-x64.dll"))
+    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.dll"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
+elif sys.platform.startswith('linux'):
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.so.3.2.0"))
+    libplist_plus = None
+    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto.so.1.1"))
+    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl.so.1.1"))
+    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.so.6.0.0"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.so.6.0.0"))
+   
+else:
+    raise NotImplementedError
 
 class IDeviceInfo(Structure):
     """
