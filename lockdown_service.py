@@ -51,7 +51,7 @@ class LockdownService(Service):
         :param key: 属性名称
         :return: 属性值
         """
-        value = None
+        values = None
         p_list_p = c_void_p()
         ret = lockdownd_get_value(client, None, key.encode("utf-8") if key else None, pointer(p_list_p))
         if ret != LockdowndError.LOCKDOWN_E_SUCCESS:
@@ -60,15 +60,15 @@ class LockdownService(Service):
         plist_bin_p = c_void_p()
         length = c_int()
         plist_to_bin(p_list_p, pointer(plist_bin_p), pointer(length))
-        print("length", length.value)
+        #print("length", length.value)
 
         buffer = read_buffer_from_pointer(plist_bin_p, length.value)
-        print("buffer.length", len(buffer))
+        #print("buffer.length", len(buffer))
         if buffer and len(buffer) > 0:
-            value = plistlib.loads(buffer)
+            values = plistlib.loads(buffer)
         plist_to_bin_free(plist_bin_p)
         plist_free(p_list_p)
-        return value
+        return values
 
 
 """
