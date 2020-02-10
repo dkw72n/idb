@@ -362,3 +362,29 @@ instproxy_browse.restype = c_int
 instproxy_client_options_new = libimobiledevice.instproxy_client_options_new
 instproxy_client_options_new.argtypes = []
 instproxy_client_options_new.restype = c_void_p
+
+# instrument_error_t instrument_client_start_service(idevice_t device, instrument_client_t* client, const char* label);
+instrument_client_start_service = libimobiledevice.instrument_client_start_service
+instrument_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+instrument_client_start_service.restype = c_int
+
+# instrument_error_t instrument_client_free(instrument_client_t client);
+instrument_client_free = libimobiledevice.instrument_client_free
+instrument_client_free.argtypes = [c_void_p]
+instrument_client_free.restype = c_int
+
+# instrument_error_t instrument_send_command(instrument_client_t client, const char *data, uint32_t size, uint32_t *sent);
+instrument_send_command = libimobiledevice.instrument_send_command
+instrument_send_command.argtypes = [c_void_p, c_void_p, c_uint32, POINTER(c_uint32)]
+instrument_send_command.restype = c_int
+
+# instrument_error_t instrument_receive(instrument_client_t client, char *data, uint32_t size, uint32_t *received);
+instrument_receive = libimobiledevice.instrument_receive
+instrument_receive.argtypes = [c_void_p, c_void_p, c_uint32, POINTER(c_uint32)]
+instrument_receive.restype = c_int
+
+# instrument_error_t instrument_receive_with_timeout(instrument_client_t client, char *data, uint32_t size, uint32_t *received, unsigned int timeout);
+instrument_receive_with_timeout = libimobiledevice.instrument_receive_with_timeout
+instrument_receive_with_timeout.argtypes = [c_void_p, c_void_p, c_uint32, POINTER(c_uint32), c_uint]
+instrument_receive_with_timeout.restype = c_int
+

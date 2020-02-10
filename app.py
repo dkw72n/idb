@@ -3,6 +3,7 @@ import argparse
 from device_service import DeviceService
 from lockdown_service import LockdownService
 from libimobiledevice import IDeviceConnectionType
+from instrument_service import instrument_main, setup_parser as setup_instrument_parser
 
 def print_devices():
     print("List of devices attached")
@@ -31,7 +32,14 @@ def print_device_info(udid, key=None):
 
 def main():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename"])
+    # argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename", "instrument"])
+    cmd_parser = argparser.add_subparsers(dest="command")
+    cmd_parser.add_parser("devices")
+    cmd_parser.add_parser("deviceinfo")
+    cmd_parser.add_parser("devicename")
+    instrument_parser = cmd_parser.add_parser("instrument")
+    setup_instrument_parser(instrument_parser)
+    
     argparser.add_argument("-u", "--udid", help="udid")
 
     args = argparser.parse_args()
@@ -41,6 +49,8 @@ def main():
         print_device_info(args.udid)
     elif args.command == "devicename":
         print_device_info(args.udid, "DeviceName")
+    elif args.command == 'instrument':
+        instrument_main(args.udid, args)
     else:
         argparser.print_usage()
 
