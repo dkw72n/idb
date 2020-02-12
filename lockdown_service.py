@@ -68,7 +68,7 @@ class LockdownService(Service):
             values = plistlib.loads(buffer)
         plist_to_bin_free(plist_bin_p)
         plist_free(p_list_p)
-        return values
+        return values, None
 
 
 """
