@@ -365,6 +365,17 @@ instproxy_client_options_new = libimobiledevice.instproxy_client_options_new
 instproxy_client_options_new.argtypes = []
 instproxy_client_options_new.restype = c_void_p
 
+class InstrumentError(IntEnum):
+    INSTRUMENT_E_SUCCESS         =  0,
+    INSTRUMENT_E_INVALID_ARG     = -1,
+    INSTRUMENT_E_PLIST_ERROR     = -2,
+    INSTRUMENT_E_MUX_ERROR       = -3,
+    INSTRUMENT_E_SSL_ERROR       = -4,
+    INSTRUMENT_E_RECEIVE_TIMEOUT = -5,
+    INSTRUMENT_E_BAD_VERSION     = -6,
+    INSTRUMENT_E_CONN_FAILED     = -7,
+    INSTRUMENT_E_UNKNOWN_ERROR   = -256
+
 # instrument_error_t instrument_client_start_service(idevice_t device, instrument_client_t* client, const char* label);
 instrument_client_start_service = libimobiledevice.instrument_client_start_service
 instrument_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
