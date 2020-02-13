@@ -365,6 +365,21 @@ instproxy_client_options_new = libimobiledevice.instproxy_client_options_new
 instproxy_client_options_new.argtypes = []
 instproxy_client_options_new.restype = c_void_p
 
+# LIBIMOBILEDEVICE_API void instproxy_client_options_free(plist_t client_options)
+instproxy_client_options_free = libimobiledevice.instproxy_client_options_free
+instproxy_client_options_free.argtypes = [c_void_p]
+instproxy_client_options_free.restype = None
+
+# LIBIMOBILEDEVICE_API void instproxy_client_options_add(plist_t client_options, ...)
+instproxy_client_options_add = libimobiledevice.instproxy_client_options_add
+instproxy_client_options_add.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
+instproxy_client_options_add.restype = None
+
+# LIBIMOBILEDEVICE_API void instproxy_client_options_set_return_attributes(plist_t client_options, ...)
+instproxy_client_options_set_return_attributes = libimobiledevice.instproxy_client_options_set_return_attributes
+instproxy_client_options_set_return_attributes.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p, c_char_p]
+instproxy_client_options_set_return_attributes.restype = None
+
 class InstrumentError(IntEnum):
     INSTRUMENT_E_SUCCESS         =  0,
     INSTRUMENT_E_INVALID_ARG     = -1,

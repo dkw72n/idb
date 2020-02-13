@@ -3,9 +3,11 @@ import json
 import os
 
 from device_service import DeviceService
+from installation_proxy_service import InstallationProxyService
 from lockdown_service import LockdownService
 from libimobiledevice import IDeviceConnectionType
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
+
 
 def print_devices():
     print("List of devices attached")
@@ -67,6 +69,7 @@ def get_device_info(udid):
         "gpu_type": gpu_type,
     }, None
 
+
 def print_device_info(udid):
     device_info, error = get_device_info(udid)
     if error:
@@ -75,6 +78,7 @@ def print_device_info(udid):
     print("Device info of device(udid: %s)" % udid)
     for key, value in device_info.items():
         print("%s: %s" % (key, value))
+
 
 def print_get_value(udid, key=None):
     device_service = DeviceService()
@@ -97,22 +101,56 @@ def print_get_value(udid, key=None):
     lockdown_service.free_client(lockdown_client)
     device_service.free_device(device)
 
+
+def get_app_list(udid):
+    device_service = DeviceService()
+    device = device_service.new_device(udid)
+
+    installation_proxy_service = InstallationProxyService()
+    installation_proxy_client = installation_proxy_service.new_client(device)
+    user_apps = installation_proxy_service.browse(installation_proxy_client, "User")
+    system_apps = installation_proxy_service.browse(installation_proxy_client, "System")
+    installation_proxy_service.free_client(installation_proxy_client)
+    return user_apps, system_apps
+
+
+def print_applications(udid):
+    user_apps, system_apps = get_app_list(udid)
+    print("List of user applications installed:")
+    for app in user_apps:
+        for key, value in app.items():
+            print("%s: %s" % (key, value))
+        print("")
+    print("")
+    print("List of system applications installed:")
+    for app in system_apps:
+        for key, value in app.items():
+            print("%s: %s" % (key, value))
+        print("")
+
+
 def main():
     argparser = argparse.ArgumentParser()
     # argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename", "instrument"])
     cmd_parser = argparser.add_subparsers(dest="command")
     cmd_parser.add_parser("devices")
+    cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
+    # getvalue
     getvalue_parser = cmd_parser.add_parser("getvalue")
     getvalue_parser.add_argument("-k", "--key")
+    # instrument
     instrument_parser = cmd_parser.add_parser("instrument")
     setup_instrument_parser(instrument_parser)
-    
+
+
     argparser.add_argument("-u", "--udid", help="udid")
 
     args = argparser.parse_args()
     if args.command == "devices":
         print_devices()
+    elif args.command == "applications":
+        print_applications(args.udid)
     elif args.command == "deviceinfo":
         print_device_info(args.udid)
     elif args.command == "getvalue":
