@@ -89,6 +89,9 @@ def setup_parser(parser):
     instrument_cmd_parsers.required = True
     instrument_cmd_parsers.add_parser("channels")
     instrument_cmd_parsers.add_parser("sysmontap")
+    instrument_cmd_parsers.add_parser("graphics")
+    instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
     done = Event()
@@ -114,12 +117,13 @@ def cmd_sysmontap(rpc):
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
     done.wait()
+    # print("set", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamplingRate:", 40.0).parsed) # 没反应
     rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {
         'ur': 1000, 
-        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid'], 
+        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead'], 
         'bm': 0, 
         'cpuUsage': True, 
-        'sampleInterval': 2000000000})
+        'sampleInterval': 1000000000}) # 改这个也没反应
     rpc.register_channel_callback("com.apple.instruments.server.services.sysmontap", on_sysmontap_message)
     print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").parsed)
     try:
@@ -129,39 +133,75 @@ def cmd_sysmontap(rpc):
     print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").parsed)
     rpc.stop()
 
+def cmd_graphics(rpc):
+    done = Event()
+    def _notifyOfPublishedCapabilities(res):
+        done.set()
+    def dropped_message(res):
+        print("[DROP]", res.parsed, res.raw.channel_code)
+    def on_graphics_message(res):
+        print("[GRAPHICS]", res.parsed)
+    rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.start()
+    done.wait()
+    rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
+    print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
+    print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
+    #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 0.0).parsed)
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
+    print("stop", rpc.call("com.apple.instruments.server.services.graphics.opengl", "stopSampling").parsed)
+    rpc.stop()
+
+def cmd_running(rpc):
+    rpc.start()
+    running = rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed
+    print("runningProcesses:")
+    headers = '\t'.join(sorted(running[0].keys()))
+    print(headers)
+    for item in running:
+        sorted_item = sorted(item.items())
+        print('\t'.join(map(str, [v for _, v in sorted_item])))
+    rpc.stop()
+
 def test(rpc):
 
     done = Event()
     def _notifyOfPublishedCapabilities(res):
         done.set()
-        #print("Published capabilities:")
-        #for k, v in auxiliary_to_pyobject(dtx._auxiliaries[0]).items():
-        #    print(k, v)
     def dropped_message(res):
-        print("[DROP]", res.parsed, dtx.channel_code)
-
+        print("[DROP]", res.parsed, res.raw.channel_code)
     def on_sysmontap_message(res):
         print("[Subs]", res.parsed)
-        return True
 
-    rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
+    #rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
-    #rpc._next_identifier = 0x69
-    #print("make channel:", rpc._call(True, 0, "_requestChannelWithCode:identifier:", 5, "com.apple.instruments.server.services.deviceinfo"))
-    #print("runningProcesses:", archiver.unarchive(rpc._call(True, 5, "runningProcesses").get_selector()))
-    #print("machTimeInfo:", archiver.unarchive(rpc._call(True, 5, "machTimeInfo").get_selector()))
-    #print("machTimeInfo:", rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed)
-    #print("setSampleRate:", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamepleRate:", 10).plist)
-    print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
+    #done.wait()
+    #print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
     # print("cleanup", rpc.call("com.apple.instruments.server.services.graphics.opengl", "cleanup").plist)
-    print("setConfig:", rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {'ur': 1000, 'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid'], 'bm': 0, 'cpuUsage': True, 'sampleInterval': 2000000000}).parsed)
-    rpc.register_channel_callback("com.apple.instruments.server.services.sysmontap", on_sysmontap_message)
-    print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").plist)
-    time.sleep(10)
-    print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").plist)
-    time.sleep(10)
+    # print("setConfig:", rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {'ur': 1000, 'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid'], 'bm': 0, 'cpuUsage': True, 'sampleInterval': 2000000000}).parsed)
+    #rpc.register_channel_callback("com.apple.instruments.server.services.sysmontap", on_sysmontap_message)
+    #print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").plist)
+    #time.sleep(10)
+    #print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").plist)
+    #print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
+    channel = "com.apple.xcode.debug-gauge-data-providers.Energy"
+    print("query", rpc.call(channel, "supportedAttributes").parsed)
+    print("start", rpc.call(channel, "startSamplingForPIDs:", {5141}).parsed)
+    #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0).parsed)
+    #print("opengl", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 5013.0).parsed)
+    #time.sleep(10)
+    #print("stop", rpc.call("com.apple.instruments.server.services.graphics.opengl", "stopSampling").parsed)
+    #print("cleanup", rpc.call("com.apple.instruments.server.services.graphics.opengl", "cleanup").parsed)
+    #time.sleep(3)
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
     rpc.stop()
 
 def instrument_main(_, opts):
@@ -180,6 +220,10 @@ def instrument_main(_, opts):
             cmd_channels(rpc)
         elif opts.instrument_cmd == 'sysmontap':
             cmd_sysmontap(rpc)
+        elif opts.instrument_cmd == 'graphics':
+            cmd_graphics(rpc)
+        elif opts.instrument_cmd == 'running':
+            cmd_running(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
