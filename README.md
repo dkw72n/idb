@@ -62,3 +62,27 @@ UniqueChipID: 7157468793159726
 UniqueDeviceID: 97006ebdc8bc5daed2e354f4addae4fd2a81c52d
 WiFiAddress: e4:9a:dc:b4:ba:94
 ```
+
+
+## Query for applications
+
+
+```
+$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d applications
+List of user applications installed:
+CFBundleExecutable: JD4iPhone
+CFBundleVersion: 8.4.6
+CFBundleShortVersionString: 167053
+CFBundleIdentifier: com.360buy.jdmobile
+Path: /private/var/containers/Bundle/Application/AB511C13-DD00-4B44-AD23-253C164D9215/JD4iPhone.app
+CFBundleName: 京东
+
+List of system applications installed:
+CFBundleExecutable: Contacts
+CFBundleVersion: 1.0
+CFBundleShortVersionString: 1.0
+CFBundleIdentifier: com.apple.MobileAddressBook
+Path: /private/var/containers/Bundle/Application/7FF5041A-225B-462C-9FF1-16D0A6AC571B/Contacts.app
+CFBundleName: 通讯录
+```
+
