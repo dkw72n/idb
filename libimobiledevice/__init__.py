@@ -27,8 +27,15 @@ elif sys.platform.startswith('linux'):
     libplist = libimobiledevice
     libusbmuxd = libimobiledevice
    
-else:
-    raise NotImplementedError
+else :
+    # mac os 
+    
+    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libcrypto.dylib"))
+    libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist++.dylib"))
+    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libssl.dylib"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libimobiledevice.dylib"))
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist.dylib"))
+    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libusbmuxd.dylib"))
 
 class IDeviceInfo(Structure):
     """
