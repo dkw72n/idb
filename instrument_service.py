@@ -91,6 +91,8 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("sysmontap")
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("activity")
+    instrument_cmd_parsers.add_parser("networking")
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -167,6 +169,50 @@ def cmd_running(rpc):
         print('\t'.join(map(str, [v for _, v in sorted_item])))
     rpc.stop()
 
+def pre_call(rpc):
+    done = Event()
+    def _notifyOfPublishedCapabilities(res):
+        done.set()
+    def dropped_message(res):
+        print("[DROP]", res.parsed, res.raw.channel_code)
+    
+    rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.start()
+    done.wait()
+
+def on_callback_message(res):
+        print("[data]", res.parsed)
+
+def cmd_networking(rpc):
+    pre_call(rpc)
+    rpc.register_channel_callback("com.apple.instruments.server.services.networking", on_callback_message)
+    print("start", rpc.call("com.apple.instruments.server.services.networking", "startMonitoring").parsed)
+    
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
+    print("stopMonitoring", rpc.call("com.apple.instruments.server.services.networking", "stopSampling").parsed)
+    rpc.stop()
+
+
+def cmd_activity(rpc):
+
+    pre_call(rpc)
+    rpc.register_channel_callback("com.apple.instruments.server.services.activity", on_callback_message)
+    
+    print("start", rpc.call("com.apple.instruments.server.services.activity", "startSamplingWithPid:", "$null").parsed)
+    
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
+    print("stop", rpc.call("com.apple.instruments.server.services.activity", "stopSampling").parsed)
+    rpc.stop()
+
+    
+
 def test(rpc):
 
     done = Event()
@@ -224,6 +270,10 @@ def instrument_main(_, opts):
             cmd_graphics(rpc)
         elif opts.instrument_cmd == 'running':
             cmd_running(rpc)
+        elif opts.instrument_cmd == 'activity':
+            cmd_activity(rpc)
+        elif opts.instrument_cmd == 'networking':
+            cmd_networking(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
