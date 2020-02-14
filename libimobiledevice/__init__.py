@@ -387,6 +387,33 @@ instproxy_client_options_set_return_attributes = libimobiledevice.instproxy_clie
 instproxy_client_options_set_return_attributes.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p, c_char_p]
 instproxy_client_options_set_return_attributes.restype = None
 
+class SbservicesError(IntEnum):
+    SBSERVICES_E_SUCCESS = 0
+    SBSERVICES_E_INVALID_ARG = -1
+    SBSERVICES_E_PLIST_ERROR = -2
+    SBSERVICES_E_CONN_FAILED = -3
+    SBSERVICES_E_UNKNOWN_ERROR = -256
+
+# sbservices_error_t sbservices_client_start_service(idevice_t device, sbservices_client_t* client, const char* label);
+sbservices_client_start_service = libimobiledevice.sbservices_client_start_service
+sbservices_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+sbservices_client_start_service.restype = c_int
+
+# sbservices_error_t sbservices_client_free(sbservices_client_t client);
+sbservices_client_free = libimobiledevice.sbservices_client_free
+sbservices_client_free.argtypes = [c_void_p]
+sbservices_client_free.restype = c_int
+
+# sbservices_error_t sbservices_get_icon_pngdata(sbservices_client_t client, const char *bundleId, char **pngdata, uint64_t *pngsize);
+sbservices_get_icon_pngdata = libimobiledevice.sbservices_get_icon_pngdata
+sbservices_get_icon_pngdata.argtypes = [c_void_p, c_char_p, POINTER(c_void_p), POINTER(c_uint64)]
+sbservices_get_icon_pngdata.restype = c_int
+
+# void free(void*)
+libimobiledevice_free = libimobiledevice.libimobiledevice_free
+libimobiledevice_free.argtypes = [c_void_p]
+libimobiledevice_free.restype = None
+
 class InstrumentError(IntEnum):
     INSTRUMENT_E_SUCCESS         =  0,
     INSTRUMENT_E_INVALID_ARG     = -1,

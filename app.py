@@ -1,12 +1,14 @@
 import argparse
 import json
 import os
+import sys
 
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
 from lockdown_service import LockdownService
 from libimobiledevice import IDeviceConnectionType
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
+from spring_board_service import SpringBoardService
 
 
 def print_devices():
@@ -102,31 +104,61 @@ def print_get_value(udid, key=None):
     device_service.free_device(device)
 
 
-def get_app_list(udid):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
-
+def get_app_list(device):
     installation_proxy_service = InstallationProxyService()
     installation_proxy_client = installation_proxy_service.new_client(device)
-    user_apps = installation_proxy_service.browse(installation_proxy_client, "User")
-    system_apps = installation_proxy_service.browse(installation_proxy_client, "System")
-    installation_proxy_service.free_client(installation_proxy_client)
+    user_apps = None
+    system_apps = None
+    if installation_proxy_client:
+        user_apps = installation_proxy_service.browse(installation_proxy_client, "User")
+        system_apps = installation_proxy_service.browse(installation_proxy_client, "System")
+        installation_proxy_service.free_client(installation_proxy_client)
     return user_apps, system_apps
 
 
 def print_applications(udid):
-    user_apps, system_apps = get_app_list(udid)
+    device_service = DeviceService()
+    device = device_service.new_device(udid)
+    if device is None:
+        print("No device attached")
+        return
+
+    user_apps, system_apps = get_app_list(device)
     print("List of user applications installed:")
-    for app in user_apps:
-        for key, value in app.items():
-            print("%s: %s" % (key, value))
+    if user_apps:
+        for app in user_apps:
+            for key, value in app.items():
+                print("%s: %s" % (key, value))
+            print("")
         print("")
-    print("")
-    print("List of system applications installed:")
-    for app in system_apps:
-        for key, value in app.items():
-            print("%s: %s" % (key, value))
-        print("")
+    if system_apps:
+        print("List of system applications installed:")
+        for app in system_apps:
+            for key, value in app.items():
+                print("%s: %s" % (key, value))
+            print("")
+    device_service.free_device(device)
+
+
+def print_icon(udid, bundle_id, output):
+    device_service = DeviceService()
+    device = device_service.new_device(udid)
+    if device is None:
+        print("No device attached")
+        return
+
+    spring_board_service = SpringBoardService()
+    spring_board_client = spring_board_service.new_client(device)
+
+    pngdata = spring_board_service.get_icon_pngdata(spring_board_client, bundle_id)
+    if pngdata:
+        with open(output, "wb") as fp:
+            fp.write(pngdata)
+        print("Save icon file at %s" % os.path.abspath(output))
+    else:
+        print("Can not get icon of app(bundleId=%s)" % bundle_id)
+    spring_board_service.free_client(spring_board_client)
+    device_service.free_device(device)
 
 
 def main():
@@ -136,6 +168,10 @@ def main():
     cmd_parser.add_parser("devices")
     cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
+    # geticon
+    geticon_parser = cmd_parser.add_parser("geticon")
+    geticon_parser.add_argument("--bundle_id", required=True)
+    geticon_parser.add_argument("-o", "--output", required=True)
     # getvalue
     getvalue_parser = cmd_parser.add_parser("getvalue")
     getvalue_parser.add_argument("-k", "--key")
@@ -153,6 +189,8 @@ def main():
         print_applications(args.udid)
     elif args.command == "deviceinfo":
         print_device_info(args.udid)
+    elif args.command == "geticon":
+        print_icon(args.udid, args.bundle_id, args.output)
     elif args.command == "getvalue":
         print_get_value(args.udid, args.key)
     elif args.command == 'instrument':

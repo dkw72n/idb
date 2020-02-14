@@ -1,15 +1,16 @@
 import unittest
+import os
 import time
+from tempfile import NamedTemporaryFile
 
-from installation_proxy_service import InstallationProxyService
+from spring_board_service import SpringBoardService
 from device_service import DeviceService
-from lockdown_service import LockdownService
 
 
-class InstallationProxyServiceTestCase(unittest.TestCase):
+class SpringBoardServiceTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.installation_proxy_service = InstallationProxyService()
+        self.spring_board_service = SpringBoardService()
         self.device_service = DeviceService()
 
     def _create_device(self):
@@ -26,20 +27,20 @@ class InstallationProxyServiceTestCase(unittest.TestCase):
         self.assertTrue(len(device_list) > 0)
         return device_list[0]['udid']
 
-    def test_browse(self):
+    def test_get_icon_pngdata(self):
         device = self._create_device()
-        client = self.installation_proxy_service.new_client(device)
+        client = self.spring_board_service.new_client(device)
         self.assertIsNotNone(client)
 
-        apps = self.installation_proxy_service.browse(client, "User")
-        self.assertIsNotNone(apps)
-        self.assertTrue(len(apps) > 0)
-        print("List of applications:")
-        for app in apps:
-            for key, value in app.items():
-                print("%s: %s" % (key, value))
-            print("")
-        self.installation_proxy_service.free_client(client)
+        pngdata = self.spring_board_service.get_icon_pngdata(client, "com.apple.Preferences")
+        self.assertIsNotNone(pngdata)
+        print("pngdata:", pngdata)
+        self.spring_board_service.free_client(client)
+
+        tmpfile = NamedTemporaryFile(suffix=".png", delete=False)
+        tmpfile.write(pngdata)
+        tmpfile.close()
+        print("png file %s" % tmpfile.name)
 
 
 if __name__ == '__main__':
