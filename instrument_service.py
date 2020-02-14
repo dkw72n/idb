@@ -193,7 +193,7 @@ def cmd_networking(rpc):
         while 1: time.sleep(10)
     except:
         pass
-    print("stopMonitoring", rpc.call("com.apple.instruments.server.services.networking", "stopSampling").parsed)
+    print("stopMonitoring", rpc.call("com.apple.instruments.server.services.networking", "startMonitoring").parsed)
     rpc.stop()
 
 
