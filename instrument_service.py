@@ -188,6 +188,16 @@ def pre_call(rpc):
 
 
 def cmd_networking(rpc):
+    headers = {
+        0: ['InterfaceIndex', "Name"],
+        1: ['LocalAddress', 'RemoteAddress', 'InterfaceIndex', 'Pid', 'RecvBufferSize', 'RecvBufferUsed', 'SerialNumber', 'Kind'],
+        2: ['RxPackets', 'RxBytes', 'TxPackets', 'TxBytes', 'RxDups', 'RxOOO', 'TxRetx', 'MinRTT', 'AvgRTT', 'ConnectionSerial']
+    }
+    msg_type = {
+        0: "interface-detection",
+        1: "connection-detected",
+        2: "connection-update",
+    }
     def on_callback_message(res):
         from socket import inet_ntoa, htons, inet_ntop, AF_INET6
         class SockAddr4(Structure):
@@ -221,9 +231,11 @@ def cmd_networking(rpc):
             elif len(data[1][0]) == 28:
                 data[1][0] = str(SockAddr6.from_buffer_copy(data[1][0]))
                 data[1][1] = str(SockAddr6.from_buffer_copy(data[1][1]))
-        print("[data]", res.parsed)
+        print(msg_type[data[0]], dict(zip(headers[data[0]], data[1])))
+        # print("[data]", res.parsed)
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.networking", on_callback_message)
+    print("replay", rpc.call("com.apple.instruments.server.services.networking", "replayLastRecordedSession").parsed)
     print("start", rpc.call("com.apple.instruments.server.services.networking", "startMonitoring").parsed)
     
     try:
