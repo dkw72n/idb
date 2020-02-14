@@ -93,6 +93,10 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("running")
     instrument_cmd_parsers.add_parser("activity")
     instrument_cmd_parsers.add_parser("networking")
+    p = instrument_cmd_parsers.add_parser("energy")
+    p.add_argument("pid", type=float)
+    p = instrument_cmd_parsers.add_parser("netstat")
+    p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -244,7 +248,33 @@ def cmd_activity(rpc):
     print("stop", rpc.call("com.apple.instruments.server.services.activity", "stopSampling").parsed)
     rpc.stop()
 
-    
+def cmd_energy(rpc, pid):
+    rpc.start()
+    channel = "com.apple.xcode.debug-gauge-data-providers.Energy"
+    attr = {}
+    print("start", rpc.call(channel, "startSamplingForPIDs:", {pid}).parsed)
+    try:
+        while 1:
+            ret = rpc.call(channel, "sampleAttributes:forPIDs:", attr, {pid})
+            print(ret.parsed)
+            time.sleep(1)
+    except:
+        pass
+    rpc.stop()
+
+def cmd_netstat(rpc, pid):
+    rpc.start()
+    channel = "com.apple.xcode.debug-gauge-data-providers.NetworkStatistics"
+    attr = {}
+    print("start", rpc.call(channel, "startSamplingForPIDs:", {pid}).parsed)
+    try:
+        while 1:
+            ret = rpc.call(channel, "sampleAttributes:forPIDs:", attr, {pid})
+            print(ret.parsed)
+            time.sleep(1)
+    except:
+        pass
+    rpc.stop()
 
 def test(rpc):
 
@@ -307,6 +337,10 @@ def instrument_main(_, opts):
             cmd_activity(rpc)
         elif opts.instrument_cmd == 'networking':
             cmd_networking(rpc)
+        elif opts.instrument_cmd == 'energy':
+            cmd_energy(rpc, opts.pid)
+        elif opts.instrument_cmd == 'netstat':
+            cmd_netstat(rpc, opts.pid)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
