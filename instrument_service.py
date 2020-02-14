@@ -181,10 +181,43 @@ def pre_call(rpc):
     rpc.start()
     done.wait()
 
-def on_callback_message(res):
-        print("[data]", res.parsed)
+
 
 def cmd_networking(rpc):
+    def on_callback_message(res):
+        from socket import inet_ntoa, htons, inet_ntop, AF_INET6
+        class SockAddr4(Structure):
+            _fields_ = [
+                ('len', c_byte),
+                ('family', c_byte),
+                ('port', c_uint16),
+                ('addr', c_byte * 4),
+                ('zero', c_byte * 8)
+            ]
+            def __str__(self):
+                return f"{inet_ntoa(self.addr)}:{htons(self.port)}"
+
+        class SockAddr6(Structure):
+            _fields_ = [
+                ('len', c_byte),
+                ('family', c_byte),
+                ('port', c_uint16),
+                ('flowinfo', c_uint32),
+                ('addr', c_byte * 16),
+                ('scopeid', c_uint32)
+            ]
+            def __str__(self):
+                return f"[{inet_ntop(AF_INET6, self.addr)}]:{htons(self.port)}"
+
+        data = res.parsed
+        if data[0] == 1:
+            if len(data[1][0]) == 16:
+                data[1][0] = str(SockAddr4.from_buffer_copy(data[1][0]))
+                data[1][1] = str(SockAddr4.from_buffer_copy(data[1][1]))
+            elif len(data[1][0]) == 28:
+                data[1][0] = str(SockAddr6.from_buffer_copy(data[1][0]))
+                data[1][1] = str(SockAddr6.from_buffer_copy(data[1][1]))
+        print("[data]", res.parsed)
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.networking", on_callback_message)
     print("start", rpc.call("com.apple.instruments.server.services.networking", "startMonitoring").parsed)
