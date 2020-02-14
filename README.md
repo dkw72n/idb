@@ -86,3 +86,11 @@ Path: /private/var/containers/Bundle/Application/7FF5041A-225B-462C-9FF1-16D0A6A
 CFBundleName: 通讯录
 ```
 
+## Get Application's icon
+
+
+```
+$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d geticon --bundle_id com.apple.Preferences --output icon.png
+Save icon file at F:\lds\project\idb\icon.png
+```
+
