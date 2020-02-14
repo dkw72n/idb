@@ -294,7 +294,7 @@ class DTXClientMixin:
         if not header_buffer:
             return None
         header = DTXMessageHeader.from_buffer_copy(header_buffer)
-        body_buffer = self.recv_all(client, header.length, timeout=timeout)
+        body_buffer = self.recv_all(client, header.length + (header.fragmentCount - 1) * sizeof(DTXMessageHeader), timeout=timeout)
         if not body_buffer:
             return None
         return DTXMessage.from_bytes(header_buffer + body_buffer)

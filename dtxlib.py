@@ -2,6 +2,16 @@ from ctypes import CDLL, c_int, POINTER, c_char_p, pointer, cast, c_void_p, c_ui
 import struct
 from bpylist import archiver
 
+def div_ceil(p: int, q: int) -> int:
+    return (p + q - 1) // q
+
+def div_floor(p: int, q: int) -> int:
+    return p // q
+
+def _get_fragment_count_by_length(length):
+    if length <= 65504: # 2**16 - sizeof(DTXMessageHeader)
+        return 1
+    
 class DTXMessageHeader(Structure):
     _fields_ = [
         ('magic', c_uint32),
@@ -82,21 +92,39 @@ class DTXMessage:
     def from_bytes(self, buffer: bytes):
         cursor = 0
         ret = DTXMessage()
+        backup_buf = buffer
         ret._buf = buffer
+        payload_buf = b''
         ret._message_header = DTXMessageHeader.from_buffer_copy(buffer[cursor:cursor+sizeof(DTXMessageHeader)])
         cursor = sizeof(DTXMessageHeader)
         has_payload = ret._message_header.length > 0
         if not has_payload:
             return ret
-        if ret._message_header.length != len(buffer) - cursor:
+        
+        if ret._message_header.length != len(buffer) - cursor - (ret._message_header.fragmentCount - 1) * sizeof(DTXMessageHeader):
             raise ValueError("incorrect DTXMessageHeader->length")
+
+        if ret._message_header.fragmentCount == 1:
+            payload_buf = buffer[cursor:]
+        else: 
+            assert ret._message_header.fragmentCount >= 3
+            while cursor < len(buffer):
+                subhdr = DTXMessageHeader.from_buffer_copy(buffer[cursor: cursor + sizeof(DTXMessageHeader)])
+                cursor += sizeof(DTXMessageHeader)
+                assert len(buffer[cursor: cursor+subhdr.length]) == subhdr.length
+                payload_buf += buffer[cursor: cursor + subhdr.length]
+                cursor += subhdr.length
+                print(subhdr.magic, subhdr.fragmentCount, subhdr.fragmentId, subhdr.length)
+                assert subhdr.magic == ret._message_header.magic
+            assert cursor == len(buffer)
+        buffer = payload_buf
+        cursor = 0
         ret._payload_header = DTXPayloadHeader.from_buffer_copy(buffer[cursor:cursor + sizeof(DTXPayloadHeader)])
         cursor += sizeof(DTXPayloadHeader)
         if ret._payload_header.totalLength == 0:
             return ret
         if ret._payload_header.totalLength != len(buffer) - cursor:
-            return ret
-            #raise ValueError("incorrect DTXPayloadHeader->totalLength")
+            raise ValueError("incorrect DTXPayloadHeader->totalLength")
         if ret._payload_header.auxiliaryLength:
             ret._auxiliaries_header = DTXAuxiliariesHeader.from_buffer_copy(buffer[cursor:cursor + sizeof(DTXAuxiliariesHeader)])
             cursor += sizeof(DTXAuxiliariesHeader)
@@ -118,23 +146,35 @@ class DTXMessage:
                 else:
                     raise ValueError("unknown auxiliary type")
             if i != ret._auxiliaries_header.length:
-                raise ValueError("incorrect DTXAuxiliariesHeader.lenght")
+                raise ValueError("incorrect DTXAuxiliariesHeader.length")
             cursor += ret._auxiliaries_header.length
         ret._selector = buffer[cursor:]
-        assert ret.to_bytes() == buffer, "correctness check" # FIXME: move this to unittest
+        assert ret.to_bytes() == backup_buf, "correctness check" # FIXME: move this to unittest
         return ret
 
     def to_bytes(self) -> bytes:
-        self._buf = b''
-        self._buf += bytes(self._message_header)
         if not self._payload_header:
             return self._buf
-        self._buf += bytes(self._payload_header)
+        payload_buf = b''
+        payload_buf += bytes(self._payload_header)
         if self._auxiliaries_header:
-            self._buf += bytes(self._auxiliaries_header)
+            payload_buf += bytes(self._auxiliaries_header)
             if self._auxiliaries:
-                self._buf += b''.join(self._auxiliaries)
-        self._buf += self._selector
+                payload_buf += b''.join(self._auxiliaries)
+        payload_buf += self._selector
+        if len(payload_buf) > 65504:
+            parts = div_ceil(len(payload_buf), 65504)
+            self._message_header.fragmentCount = parts + 1
+            self._buf = bytes(self._message_header)
+            for part in range(parts):
+                part_len = min(len(payload_buf) - part * 65504, 65504)
+                subhdr = DTXMessageHeader.from_buffer_copy(bytes(self._message_header))
+                subhdr.fragmentId = part + 1
+                subhdr.length = part_len
+                self._buf += bytes(subhdr)
+                self._buf += payload_buf[part * 65504: part * 65504 + part_len]
+        else:
+            self._buf = bytes(self._message_header) + payload_buf
         return self._buf
 
     def set_selector(self, buffer:bytes):
@@ -229,3 +269,16 @@ def selector_to_pyobject(sel):
     if not sel:
         return None
     return archiver.unarchive(sel)
+
+if __name__ == '__main__':
+    from utils import hexdump
+    buf = open("dtxmsg.bin", "rb").read() + b'\x00' * 64
+    sz = sizeof(DTXMessageHeader)
+    h0 = DTXMessageHeader.from_buffer_copy(buf[:sz])
+    print(h0.magic, h0.fragmentCount, h0.fragmentId, h0.length)
+    h1 = DTXMessageHeader.from_buffer_copy(buf[sz:sz+sz])
+    print(h1.magic, h1.fragmentCount, h1.fragmentId, h1.length)
+    
+    hexdump(buf[:100])
+    hexdump(buf[h1.length + sz + sz:][:100])
+    DTXMessage.from_bytes(buf)
