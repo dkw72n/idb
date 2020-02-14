@@ -95,7 +95,8 @@ class DTXMessage:
         if ret._payload_header.totalLength == 0:
             return ret
         if ret._payload_header.totalLength != len(buffer) - cursor:
-            raise ValueError("incorrect DTXPayloadHeader->totalLength")
+            return ret
+            #raise ValueError("incorrect DTXPayloadHeader->totalLength")
         if ret._payload_header.auxiliaryLength:
             ret._auxiliaries_header = DTXAuxiliariesHeader.from_buffer_copy(buffer[cursor:cursor + sizeof(DTXAuxiliariesHeader)])
             cursor += sizeof(DTXAuxiliariesHeader)
