@@ -133,6 +133,7 @@ def setup_parser(parser):
     p = instrument_cmd_parsers.add_parser("netstat")
     p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("coreprofile")
+    instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -338,8 +339,19 @@ def cmd_coreprofile(rpc):
         while 1: time.sleep(10)
     except:
         pass
-    #print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
     print("stop", rpc.call(channel, "stop").parsed)
+
+def cmd_power(rpc):
+    rpc.start()
+    channel = "com.apple.instruments.server.services.power"
+    stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
+    print("open", stream_num)
+    print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
+    print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
 
 def test(rpc):
 
@@ -415,6 +427,8 @@ def instrument_main(_, opts):
             cmd_netstat(rpc, opts.pid)
         elif opts.instrument_cmd == 'coreprofile':
             cmd_coreprofile(rpc)
+        elif opts.instrument_cmd == 'power':
+            cmd_power(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
