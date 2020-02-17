@@ -94,3 +94,18 @@ $ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d geticon --bundle_id com.ap
 Save icon file at F:\lds\project\idb\icon.png
 ```
 
+
+## Lookup image
+
+
+```
+$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d lookupimage --image_type Developer
+Image mount status: Yes
+```
+
+## Mount image
+
+```
+$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d mountimage --image_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg --sig_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg.signature
+Mount result: True
+```

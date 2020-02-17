@@ -190,6 +190,11 @@ lockdownd_get_value.restype = c_int
 
 # PLIST
 
+# plist_t plist_new_data(const char *val, uint64_t length);
+plist_new_data = libplist.plist_new_data
+plist_new_data.argtypes = [c_void_p, c_uint64]
+plist_new_data.restype = c_void_p
+
 # void plist_free(plist_t plist);
 plist_free = libplist.plist_free
 plist_free.argtypes = [c_void_p]
@@ -279,6 +284,60 @@ mobile_image_mounter_hangup = libimobiledevice.mobile_image_mounter_hangup
 mobile_image_mounter_hangup.argtypes = [c_void_p]
 mobile_image_mounter_hangup.restype = c_int
 
+
+# Mobile Image Mounter
+
+class MobileImageMounterError(IntEnum):
+    MOBILE_IMAGE_MOUNTER_E_SUCCESS = 0
+    MOBILE_IMAGE_MOUNTER_E_INVALID_ARG = -1
+    MOBILE_IMAGE_MOUNTER_E_PLIST_ERROR = -2
+    MOBILE_IMAGE_MOUNTER_E_CONN_FAILED = -3
+    MOBILE_IMAGE_MOUNTER_E_COMMAND_FAILED = -4
+    MOBILE_IMAGE_MOUNTER_E_DEVICE_LOCKED = -5
+    MOBILE_IMAGE_MOUNTER_E_UNKNOWN_ERROR = -256
+
+# typedef ssize_t (*mobile_image_mounter_upload_cb_t) (void* buffer, size_t length, void *user_data);
+MobileImageMounterUploadCb = CFUNCTYPE(c_ssize_t, c_void_p, c_size_t, c_void_p)
+
+# mobile_image_mounter_error_t mobile_image_mounter_start_service(idevice_t device, mobile_image_mounter_client_t* client, const char* label);
+mobile_image_mounter_start_service = libimobiledevice.mobile_image_mounter_start_service
+mobile_image_mounter_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+mobile_image_mounter_start_service.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_free(mobile_image_mounter_client_t client);
+mobile_image_mounter_free = libimobiledevice.mobile_image_mounter_free
+mobile_image_mounter_free.argtypes = [c_void_p]
+mobile_image_mounter_free.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_lookup_image(mobile_image_mounter_client_t client, const char *image_type, plist_t *result);
+mobile_image_mounter_lookup_image = libimobiledevice.mobile_image_mounter_lookup_image
+mobile_image_mounter_lookup_image.argtypes = [c_void_p, c_char_p, POINTER(c_void_p)]
+mobile_image_mounter_lookup_image.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_upload_image(mobile_image_mounter_client_t client, const char *image_type, size_t image_size, const char *signature, uint16_t signature_size, mobile_image_mounter_upload_cb_t upload_cb, void* userdata);
+mobile_image_mounter_upload_image = libimobiledevice.mobile_image_mounter_upload_image
+mobile_image_mounter_upload_image.argtypes = [c_void_p, c_char_p, c_size_t, c_char_p, c_uint16, MobileImageMounterUploadCb, c_void_p]
+mobile_image_mounter_upload_image.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_upload_image_file(mobile_image_mounter_client_t client, const char *image_type, const char* image_file_path, const char *signature_file_path);
+mobile_image_mounter_upload_image_file = libimobiledevice.mobile_image_mounter_upload_image_file
+mobile_image_mounter_upload_image_file.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
+mobile_image_mounter_upload_image_file.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_mount_image(mobile_image_mounter_client_t client, const char *image_path, const char *signature, uint16_t signature_size, const char *image_type, plist_t *result);
+mobile_image_mounter_mount_image = libimobiledevice.mobile_image_mounter_mount_image
+mobile_image_mounter_mount_image.argtypes = [c_void_p, c_char_p, c_char_p, c_uint16, c_char, POINTER(c_void_p)]
+mobile_image_mounter_mount_image.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_mount_image_file(mobile_image_mounter_client_t client, const char *image_path, const char *signature_file, const char *image_type, plist_t *result);
+mobile_image_mounter_mount_image_file = libimobiledevice.mobile_image_mounter_mount_image_file
+mobile_image_mounter_mount_image_file.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p, POINTER(c_void_p)]
+mobile_image_mounter_mount_image_file.restype = c_int
+
+# mobile_image_mounter_error_t mobile_image_mounter_hangup(mobile_image_mounter_client_t client);
+mobile_image_mounter_hangup = libimobiledevice.mobile_image_mounter_hangup
+mobile_image_mounter_hangup.argtypes = [c_void_p]
+mobile_image_mounter_hangup.restype = c_int
 
 # Installation Proxy
 

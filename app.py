@@ -9,6 +9,7 @@ from lockdown_service import LockdownService
 from libimobiledevice import IDeviceConnectionType
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
 from spring_board_service import SpringBoardService
+from image_mounter_service import ImageMounterService
 
 
 def print_devices():
@@ -161,6 +162,73 @@ def print_icon(udid, bundle_id, output):
     device_service.free_device(device)
 
 
+def print_image_lookup(udid, image_type = None):
+    device_service = DeviceService()
+    device = device_service.new_device(udid)
+    if device is None:
+        print("No device attached")
+        return
+
+    lockdown_service = LockdownService()
+    lockdown_client = lockdown_service.new_client(device)
+
+    product_version, error = lockdown_service.get_value(lockdown_client, key="ProductVersion")
+    if error:
+        print("Error: %s" % error)
+        return
+    lockdown_service.free_client(lockdown_client)
+
+    if image_type is None:
+        image_type = "Developer"
+
+    image_mounter_service = ImageMounterService()
+    image_mounter_client = image_mounter_service.new_client(device)
+
+    image_mounted, error = image_mounter_service.lookup_image(image_mounter_client, image_type, product_version)
+    if error:
+        print("Error: %s" % error)
+    else:
+        print("Image mount status: " + ("Yes" if image_mounted else "No"))
+
+    image_mounter_service.hangup(image_mounter_client)
+    image_mounter_service.free_client(image_mounter_client)
+
+def print_mount_image(udid, image_type, image_file, image_signature_file):
+    device_service = DeviceService()
+    device = device_service.new_device(udid)
+    if device is None:
+        print("No device attached")
+        return
+
+    lockdown_service = LockdownService()
+    lockdown_client = lockdown_service.new_client(device)
+
+    product_version, error = lockdown_service.get_value(lockdown_client, key="ProductVersion")
+    if error:
+        print("Error: %s" % error)
+        return
+    lockdown_service.free_client(lockdown_client)
+
+    if image_type is None:
+        image_type = "Developer"
+
+    image_mounter_service = ImageMounterService()
+    image_mounter_client = image_mounter_service.new_client(device)
+
+    result = image_mounter_service.upload_image(image_mounter_client, image_type, image_file, image_signature_file)
+    if not result:
+        print("Error: Can not upload image")
+    else:
+        image_path = "/private/var/mobile/Media/PublicStaging/staging.dimage"
+        result, error = image_mounter_service.mount_image(image_mounter_client, image_type, image_path, image_signature_file)
+        if error:
+            print("Error: %s" % error)
+        else:
+            print("Mount result: %s" % str(result))
+
+    image_mounter_service.hangup(image_mounter_client)
+    image_mounter_service.free_client(image_mounter_client)
+
 def main():
     argparser = argparse.ArgumentParser()
     # argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename", "instrument"])
@@ -168,6 +236,14 @@ def main():
     cmd_parser.add_parser("devices")
     cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
+    # imagemounter
+    lookupimage_parser = cmd_parser.add_parser("lookupimage")
+    lookupimage_parser.add_argument("-t", "--image_type", required=False)
+    # imagemounter
+    mountimage_parser = cmd_parser.add_parser("mountimage")
+    mountimage_parser.add_argument("-t", "--image_type", required=False)
+    mountimage_parser.add_argument("-i", "--image_file", required=False)
+    mountimage_parser.add_argument("-s", "--sig_file", required=False)
     # geticon
     geticon_parser = cmd_parser.add_parser("geticon")
     geticon_parser.add_argument("--bundle_id", required=True)
@@ -189,6 +265,10 @@ def main():
         print_applications(args.udid)
     elif args.command == "deviceinfo":
         print_device_info(args.udid)
+    elif args.command == "lookupimage":
+        print_image_lookup(args.udid, args.image_type)
+    elif args.command == "mountimage":
+        print_mount_image(args.udid, args.image_type, args.image_file, args.sig_file)
     elif args.command == "geticon":
         print_icon(args.udid, args.bundle_id, args.output)
     elif args.command == "getvalue":
