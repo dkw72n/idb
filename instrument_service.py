@@ -84,6 +84,41 @@ A4 03 B0 03 B5 03 BA 03 C7 03 CA 03 CF 03 E1 03 E4 03 E9 00 00 00 00 00 00 02 01
 00 00 00 00 00 00 67
 """)
 
+coreprofile_cfg = load_byte_from_hexdump("""
+0a 00 00 00 02 00 00 00 08 04 00 00 62 70 6c 69 73 74 30 30 d4 01 02 03 04 05 70 71 72 58 24 6f
+62 6a 65 63 74 73 58 24 76 65 72 73 69 6f 6e 59 24 61 72 63 68 69 76 65 72 54 24 74 6f 70 af 10
+2a 06 07 14 15 16 17 18 19 1a 1e 28 29 2a 2b 2c 2d 2e 34 35 36 37 38 39 3a 3b 3c 43 44 48 4c 4d
+53 57 5a 19 5e 62 63 66 69 6d 6e 55 24 6e 75 6c 6c d3 08 09 0a 0b 0c 10 56 24 63 6c 61 73 73 57
+4e 53 2e 6b 65 79 73 5a 4e 53 2e 6f 62 6a 65 63 74 73 80 29 a3 0d 0e 0f 80 02 80 04 80 05 a3 11
+12 13 80 06 80 08 80 28 52 75 72 52 62 6d 52 74 63 52 72 70 11 01 f4 10 00 d2 08 0a 1b 1c 80 20
+a1 1d 80 09 d3 08 09 0a 1f 20 24 80 27 a3 21 22 23 80 0a 80 0d 80 0f a3 25 26 27 80 10 80 1d 80
+26 54 6b 64 66 32 53 63 73 64 53 6b 64 66 52 74 6b 52 74 61 54 75 75 69 64 d2 08 0a 2f 30 80 19
+a3 31 32 33 80 11 80 14 80 18 12 25 99 00 00 12 85 02 00 00 12 31 ca 00 00 12 31 b0 00 00 12 85
+01 00 00 12 85 c0 00 00 12 85 20 00 00 12 31 80 01 08 d2 3d 3e 3f 40 5a 24 63 6c 61 73 73 6e 61
+6d 65 58 24 63 6c 61 73 73 65 73 5c 4e 53 4d 75 74 61 62 6c 65 53 65 74 a3 3f 41 42 55 4e 53 53
+65 74 58 4e 53 4f 62 6a 65 63 74 10 80 d2 08 45 46 47 59 4e 53 2e 73 74 72 69 6e 67 80 1c 5f 10
+82 3c 65 76 65 6e 74 73 3e 3c 65 76 65 6e 74 20 74 79 70 65 3d 22 4b 44 65 62 75 67 22 20 63 6c
+61 73 73 3d 22 34 39 22 20 73 75 62 63 6c 61 73 73 3d 22 31 37 36 22 20 63 6f 64 65 3d 22 2a 22
+2f 3e 3c 65 76 65 6e 74 20 74 79 70 65 3d 22 4b 44 65 62 75 67 22 20 63 6c 61 73 73 3d 22 34 39
+22 20 73 75 62 63 6c 61 73 73 3d 22 31 32 38 22 20 63 6f 64 65 3d 22 22 2f 3e 3c 2f 65 76 65 6e
+74 73 3e d2 3d 3e 49 4a 5f 10 0f 4e 53 4d 75 74 61 62 6c 65 53 74 72 69 6e 67 a3 49 4b 42 58 4e
+53 53 74 72 69 6e 67 10 03 d2 08 0a 4e 4f 80 25 a3 50 51 52 80 1f 80 21 80 23 d2 08 0a 54 55 80
+20 a1 56 80 1d d2 3d 3e 58 59 57 4e 53 41 72 72 61 79 a2 58 42 d2 08 0a 5b 5c 80 20 a1 5d 80 22
+d2 08 0a 5f 60 80 20 a1 61 80 24 10 02 d2 3d 3e 64 65 5e 4e 53 4d 75 74 61 62 6c 65 41 72 72 61
+79 a3 64 58 42 d2 08 45 67 68 80 1c 5f 10 24 32 43 34 36 42 36 31 41 2d 43 44 41 39 2d 34 44 35
+39 2d 42 39 30 31 2d 32 32 45 32 38 42 30 38 43 32 36 30 d2 3d 3e 6a 6b 5f 10 13 4e 53 4d 75 74
+61 62 6c 65 44 69 63 74 69 6f 6e 61 72 79 a3 6a 6c 42 5c 4e 53 44 69 63 74 69 6f 6e 61 72 79 10
+0a d2 3d 3e 6c 6f a2 6c 42 12 00 01 86 a0 5f 10 0f 4e 53 4b 65 79 65 64 41 72 63 68 69 76 65 72
+d1 73 74 54 72 6f 6f 74 80 01 00 08 00 11 00 1a 00 23 00 2d 00 32 00 5f 00 65 00 6c 00 73 00 7b
+00 86 00 88 00 8c 00 8e 00 90 00 92 00 96 00 98 00 9a 00 9c 00 9f 00 a2 00 a5 00 a8 00 ab 00 ad
+00 b2 00 b4 00 b6 00 b8 00 bf 00 c1 00 c5 00 c7 00 c9 00 cb 00 cf 00 d1 00 d3 00 d5 00 da 00 de
+00 e2 00 e5 00 e8 00 ed 00 f2 00 f4 00 f8 00 fa 00 fc 00 fe 01 03 01 08 01 0d 01 12 01 17 01 1c
+01 21 01 26 01 2b 01 36 01 3f 01 4c 01 50 01 56 01 5f 01 61 01 66 01 70 01 72 01 f7 01 fc 02 0e
+02 12 02 1b 02 1d 02 22 02 24 02 28 02 2a 02 2c 02 2e 02 33 02 35 02 37 02 39 02 3e 02 46 02 49
+02 4e 02 50 02 52 02 54 02 59 02 5b 02 5d 02 5f 02 61 02 66 02 75 02 79 02 7e 02 80 02 a7 02 ac
+02 c2 02 c6 02 d3 02 d5 02 da 02 dd 02 e2 02 f4 02 f7 02 fc 00 00 00 00 00 00 02 01 00 00 00 00
+00 00 00 75 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 fe
+""")
 def setup_parser(parser):
     instrument_cmd_parsers = parser.add_subparsers(dest="instrument_cmd")
     instrument_cmd_parsers.required = True
@@ -97,6 +132,7 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("netstat")
     p.add_argument("pid", type=float)
+    instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -288,13 +324,31 @@ def cmd_netstat(rpc, pid):
         pass
     rpc.stop()
 
+def cmd_coreprofile(rpc):
+    def on_channel_message(res):
+        #print(res.parsed)
+        #print(res.plist)
+        print(res.raw.get_selector())
+    rpc.start()
+    channel = "com.apple.instruments.server.services.coreprofilesessiontap"
+    rpc.register_channel_callback(channel, on_channel_message)
+    print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
+    print("start", rpc.call(channel, "start").parsed)
+    try:
+        while 1: time.sleep(10)
+    except:
+        pass
+    #print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
+    print("stop", rpc.call(channel, "stop").parsed)
+
 def test(rpc):
 
     done = Event()
     def _notifyOfPublishedCapabilities(res):
         done.set()
     def dropped_message(res):
-        print("[DROP]", res.parsed, res.raw.channel_code)
+        #print("[DROP]", res.plist, res.raw.channel_code)
+        pass
     def on_sysmontap_message(res):
         print("[Subs]", res.parsed)
 
@@ -310,9 +364,13 @@ def test(rpc):
     #time.sleep(10)
     #print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").plist)
     #print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
-    channel = "com.apple.xcode.debug-gauge-data-providers.Energy"
-    print("query", rpc.call(channel, "supportedAttributes").parsed)
-    print("start", rpc.call(channel, "startSamplingForPIDs:", {5141}).parsed)
+    #channel = "com.apple.instruments.server.services.power"
+    #stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
+    #print("open", stream_num)
+    #print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
+    channel = "com.apple.instruments.server.services.coreprofilesessiontap"
+    print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
+    print("start", rpc.call(channel, "start").parsed)
     #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0).parsed)
     #print("opengl", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 5013.0).parsed)
     #time.sleep(10)
@@ -323,6 +381,8 @@ def test(rpc):
         while 1: time.sleep(10)
     except:
         pass
+    #print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
+    print("stop", rpc.call(channel, "stop").parsed)
     rpc.stop()
 
 def instrument_main(_, opts):
@@ -353,6 +413,8 @@ def instrument_main(_, opts):
             cmd_energy(rpc, opts.pid)
         elif opts.instrument_cmd == 'netstat':
             cmd_netstat(rpc, opts.pid)
+        elif opts.instrument_cmd == 'coreprofile':
+            cmd_coreprofile(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
@@ -450,6 +512,10 @@ class InstrumentRPCParseError:
 
 InstrumentServiceConnectionLost = DTXMessage().set_selector(pyobject_to_selector("[PerfCat] Connection Lost!"))
 
+class InstrumentRPCRawArg:
+    def __init__(self, data:bytes):
+        self.data = data
+
 class InstrumentRPCResult:
     def __init__(self, dtx):
         self.raw = dtx
@@ -462,7 +528,11 @@ class InstrumentRPCResult:
             self.plist = ""
             self.parsed = None
             return
-        self.plist = bplist.parse(sel)
+        try:
+            self.plist = bplist.parse(sel)
+        except:
+            self.plist = InstrumentRPCParseError()
+            #print("--------", sel)
         try:
             self.parsed = archiver.unarchive(sel)
         except:
@@ -582,7 +652,10 @@ class InstrumentRPC:
         dtx.channel_code = channel_id
         dtx.set_selector(pyobject_to_selector(selector))
         for aux in auxiliaries:
-            dtx.add_auxiliary(pyobject_to_auxiliary(aux))
+            if type(aux) is InstrumentRPCRawArg:
+                dtx.add_auxiliary(aux.data)
+            else:
+                dtx.add_auxiliary(pyobject_to_auxiliary(aux))
         if sync:
             dtx.expects_reply = True
             param = {"result": None, "event": Event()}
@@ -622,7 +695,11 @@ class InstrumentRPC:
                 except:
                     traceback.print_exc()
             else:
-                selector = selector_to_pyobject(dtx.get_selector())
+                try:
+                    selector = selector_to_pyobject(dtx.get_selector())
+                except:
+                    selector = None
+
                 if selector and type(selector) is str and selector in self._callbacks:
                     try:
                         self._callbacks[selector](InstrumentRPCResult(dtx))
@@ -633,7 +710,7 @@ class InstrumentRPC:
                         try:
                             self._unhanled_callback(InstrumentRPCResult(dtx))
                         except:
-                            traceback.print_exc
+                            traceback.print_exc()
                     #print("dropped", selector, dtx, dtx.identifier, dtx.channel_code)
         self._receiver_exiting = True # to block incoming calls
         for identifier in self._sync_waits:
@@ -658,8 +735,9 @@ def main():
 
 
 if __name__ == '__main__':
-    #d = DTXMessage.from_bytes(sample_setconf)
+    #d = DTXMessage.from_bytes(open("core2.bin", "rb").read())
     #print(archiver.unarchive(d.get_selector()))
     #for i in d._auxiliaries:
-    #    print(auxiliary_to_pyobject(i))
+    #    #print(auxiliary_to_pyobject(i))
+    #    hexdump(i)
     main()

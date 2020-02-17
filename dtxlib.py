@@ -1,6 +1,6 @@
 from ctypes import CDLL, c_int, POINTER, c_char_p, pointer, cast, c_void_p, c_uint, create_string_buffer, Structure, c_uint32, c_int32, c_uint16, c_uint64, c_int64, sizeof
 import struct
-from bpylist import archiver
+from bpylist import archiver, bplist
 
 def div_ceil(p: int, q: int) -> int:
     return (p + q - 1) // q
@@ -114,7 +114,7 @@ class DTXMessage:
                 assert len(buffer[cursor: cursor+subhdr.length]) == subhdr.length
                 payload_buf += buffer[cursor: cursor + subhdr.length]
                 cursor += subhdr.length
-                print(subhdr.magic, subhdr.fragmentCount, subhdr.fragmentId, subhdr.length)
+                #print(subhdr.magic, subhdr.fragmentCount, subhdr.fragmentId, subhdr.length)
                 assert subhdr.magic == ret._message_header.magic
             assert cursor == len(buffer)
         buffer = payload_buf
