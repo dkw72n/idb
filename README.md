@@ -34,7 +34,7 @@ gpu_type: Apple A10X Fusion (12-core graphics)
 ## Get Value
 
 ```
-$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d getvalue
+$ idb getvalue
 Values of device(udid: 97006ebdc8bc5daed2e354f4addae4fd2a81c52d)
 BasebandCertId: 2315222105
 BasebandKeyHashInformation: {'AKeyStatus': 2, 'SKeyHash': b'\xbb\xef\xedp,/i\x0f\xb5c\xdbx\xd0\x8e2z\x00\x84\x98\x1d\xbc\x98\x02\xe5i\x13\xa1h\x85F\x05j', 'SKeyStatus': 0}
@@ -68,7 +68,7 @@ WiFiAddress: e4:9a:dc:b4:ba:94
 
 
 ```
-$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d applications
+$ idb applications
 List of user applications installed:
 CFBundleExecutable: JD4iPhone
 CFBundleVersion: 8.4.6
@@ -90,7 +90,7 @@ CFBundleName: 通讯录
 
 
 ```
-$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d geticon --bundle_id com.apple.Preferences --output icon.png
+$ idb geticon --bundle_id com.apple.Preferences --output icon.png
 Save icon file at F:\lds\project\idb\icon.png
 ```
 
@@ -99,14 +99,14 @@ Save icon file at F:\lds\project\idb\icon.png
 
 
 ```
-$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d lookupimage --image_type Developer
+$ idb lookupimage --image_type Developer
 Image mount status: Yes
 ```
 
 ## Mount image
 
 ```
-$ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d mountimage --image_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg --sig_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg.signature
+$ idb mountimage --image_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg --sig_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg.signature
 Mount result: True
 ```
 
@@ -116,4 +116,22 @@ Mount result: True
 ```
 $ idb screenshot
 Save screenshot image file at F:\lds\project\idb\screenshot_20200218_112501.png
+```
+
+
+## Query Running Processes
+
+```
+$ idb instrument running
+runningProcesses:
+isApplication	name	pid	realAppName	startDate
+False	filecoordinationd	144	/usr/sbin/filecoordinationd	bpylist.timestamp datetime.datetime(2020, 2, 17, 15, 12, 42, 829858, tzinfo=datetime.timezone.utc)```
+```
+
+## Instrument channels
+
+```
+$ idb instrument channels
+Published capabilities:
+com.apple.instruments.server.services.processcontrolbydictionary 4
 ```

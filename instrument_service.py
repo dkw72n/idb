@@ -397,12 +397,8 @@ def test(rpc):
     print("stop", rpc.call(channel, "stop").parsed)
     rpc.stop()
 
-def instrument_main(_, opts):
+def instrument_main(device, opts):
     device_service = DeviceService()
-    device = device_service.new_device(opts.udid)
-    if not device:
-        print("failed to new device")
-        return
     rpc = InstrumentRPC()
     if not rpc.init(device):
         print("failed to init rpc")

@@ -301,7 +301,7 @@ def main():
     elif args.command == "getvalue":
         print_get_value(args.udid, args.key)
     elif args.command == 'instrument':
-        instrument_main(args.udid, args)
+        instrument_main(_get_device_or_die(args.udid), args)
     else:
         argparser.print_usage()
 
