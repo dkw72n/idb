@@ -37,6 +37,44 @@ else :
     libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist.dylib"))
     libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libusbmuxd.dylib"))
 
+
+# --------------------------------- plist -----------------------------------------
+
+
+# plist_t plist_new_data(const char *val, uint64_t length);
+plist_new_data = libplist.plist_new_data
+plist_new_data.argtypes = [c_void_p, c_uint64]
+plist_new_data.restype = c_void_p
+
+# void plist_free(plist_t plist);
+plist_free = libplist.plist_free
+plist_free.argtypes = [c_void_p]
+plist_free.restype = None
+
+# void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+plist_to_bin = libplist.plist_to_bin
+plist_to_bin.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
+plist_to_bin.restype = None
+
+# void plist_to_bin_free(char *plist_bin);
+plist_to_bin_free = libplist.plist_to_bin_free
+plist_to_bin_free.argtypes = [c_void_p]
+plist_to_bin_free.restype = None
+
+# void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
+plist_to_xml = libplist.plist_to_xml
+plist_to_xml.argtypes = [c_void_p, POINTER(c_char_p), POINTER(c_int)]
+plist_to_xml.restype = None
+
+# void plist_to_bin_free(char *plist_bin);
+plist_to_xml_free = libplist.plist_to_xml_free
+plist_to_xml_free.argtypes = [c_char_p]
+plist_to_xml_free.restype = None
+
+
+# --------------------------------- IDevice -----------------------------------------
+
+
 class IDeviceInfo(Structure):
     """
     struct idevice_info {
@@ -126,7 +164,7 @@ idevice_free.argtypes = [c_void_p]
 idevice_free.restype = c_int
 
 
-# LOCKDOWN
+# --------------------------------- Lockdownd -----------------------------------------
 
 
 class LockdowndError(IntEnum):
@@ -174,7 +212,6 @@ class LockdowndError(IntEnum):
     LOCKDOWN_E_MC_CHALLENGE_REQUIRED = -39,
     LOCKDOWN_E_UNKNOWN_ERROR = -256
 
-
 lockdownd_client_new = libimobiledevice.lockdownd_client_new
 lockdownd_client_new.argtypes = [c_void_p, c_void_p, c_char_p]
 lockdownd_client_new.restype = c_int
@@ -188,104 +225,9 @@ lockdownd_get_value = libimobiledevice.lockdownd_get_value
 lockdownd_get_value.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_void_p)]
 lockdownd_get_value.restype = c_int
 
-# PLIST
 
-# plist_t plist_new_data(const char *val, uint64_t length);
-plist_new_data = libplist.plist_new_data
-plist_new_data.argtypes = [c_void_p, c_uint64]
-plist_new_data.restype = c_void_p
+# --------------------------------- Mobile Image Mounter -----------------------------------------
 
-# void plist_free(plist_t plist);
-plist_free = libplist.plist_free
-plist_free.argtypes = [c_void_p]
-plist_free.restype = None
-
-# void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
-plist_to_bin = libplist.plist_to_bin
-plist_to_bin.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
-plist_to_bin.restype = None
-
-# void plist_to_bin_free(char *plist_bin);
-plist_to_bin_free = libplist.plist_to_bin_free
-plist_to_bin_free.argtypes = [c_void_p]
-plist_to_bin_free.restype = None
-
-# void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
-plist_to_xml = libplist.plist_to_xml
-plist_to_xml.argtypes = [c_void_p, POINTER(c_char_p), POINTER(c_int)]
-plist_to_xml.restype = None
-
-# void plist_to_bin_free(char *plist_bin);
-plist_to_xml_free = libplist.plist_to_xml_free
-plist_to_xml_free.argtypes = [c_char_p]
-plist_to_xml_free.restype = None
-
-
-# Mobile Image Mounter
-
-class MobileImageMounterError(IntEnum):
-    MOBILE_IMAGE_MOUNTER_E_SUCCESS = 0,
-    MOBILE_IMAGE_MOUNTER_E_INVALID_ARG = -1,
-    MOBILE_IMAGE_MOUNTER_E_PLIST_ERROR = -2,
-    MOBILE_IMAGE_MOUNTER_E_CONN_FAILED = -3,
-    MOBILE_IMAGE_MOUNTER_E_COMMAND_FAILED = -4,
-    MOBILE_IMAGE_MOUNTER_E_DEVICE_LOCKED = -5,
-    MOBILE_IMAGE_MOUNTER_E_UNKNOWN_ERROR = -256
-
-
-MobileImageMounterUploadCb = CFUNCTYPE(c_ssize_t, c_void_p, c_size_t, c_void_p)
-
-
-class LockdowndServiceDescriptor(Structure):
-    """
-    struct lockdownd_service_descriptor {
-        uint16_t port;
-        uint8_t ssl_enabled;
-    };
-    """
-    _fields_ = [
-        ('port', c_int16),
-        ('ssl_enabled', c_int8),
-    ]
-
-
-# mobile_image_mounter_error_t mobile_image_mounter_new(idevice_t device, lockdownd_service_descriptor_t service, mobile_image_mounter_client_t *client);
-mobile_image_mounter_new = libimobiledevice.mobile_image_mounter_new
-mobile_image_mounter_new.argtypes = [c_void_p, POINTER(LockdowndServiceDescriptor), POINTER(c_void_p)]
-mobile_image_mounter_new.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_start_service(idevice_t device, mobile_image_mounter_client_t* client, const char* label);
-mobile_image_mounter_start_service = libimobiledevice.mobile_image_mounter_start_service
-mobile_image_mounter_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
-mobile_image_mounter_new.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_free(mobile_image_mounter_client_t client);
-mobile_image_mounter_free = libimobiledevice.mobile_image_mounter_free
-mobile_image_mounter_free.argtypes = [c_void_p]
-mobile_image_mounter_free.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_lookup_image(mobile_image_mounter_client_t client, const char *image_type, plist_t *result);
-mobile_image_mounter_lookup_image = libimobiledevice.mobile_image_mounter_lookup_image
-mobile_image_mounter_lookup_image.argtypes = [c_void_p, c_char_p, c_void_p]
-mobile_image_mounter_lookup_image.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_upload_image(mobile_image_mounter_client_t client, const char *image_type, size_t image_size, const char *signature, uint16_t signature_size, mobile_image_mounter_upload_cb_t upload_cb, void* userdata);
-mobile_image_mounter_upload_image = libimobiledevice.mobile_image_mounter_upload_image
-mobile_image_mounter_upload_image.argtypes = [c_void_p, c_char_p, c_size_t, c_char_p, c_uint16, MobileImageMounterUploadCb, c_void_p]
-mobile_image_mounter_upload_image.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_mount_image(mobile_image_mounter_client_t client, const char *image_path, const char *signature, uint16_t signature_size, const char *image_type, plist_t *result);
-mobile_image_mounter_mount_image = libimobiledevice.mobile_image_mounter_mount_image
-mobile_image_mounter_mount_image.argtypes = [c_void_p, c_char_p, c_char_p, c_uint16, c_char_p, c_void_p]
-mobile_image_mounter_mount_image.restype = c_int
-
-# mobile_image_mounter_error_t mobile_image_mounter_hangup(mobile_image_mounter_client_t client);
-mobile_image_mounter_hangup = libimobiledevice.mobile_image_mounter_hangup
-mobile_image_mounter_hangup.argtypes = [c_void_p]
-mobile_image_mounter_hangup.restype = c_int
-
-
-# Mobile Image Mounter
 
 class MobileImageMounterError(IntEnum):
     MOBILE_IMAGE_MOUNTER_E_SUCCESS = 0
@@ -339,7 +281,9 @@ mobile_image_mounter_hangup = libimobiledevice.mobile_image_mounter_hangup
 mobile_image_mounter_hangup.argtypes = [c_void_p]
 mobile_image_mounter_hangup.restype = c_int
 
-# Screenshotr
+
+# --------------------------------- Screenshotr -----------------------------------------
+
 
 class ScreenshotrError(IntEnum):
     SCREENSHOTR_E_SUCCESS = 0,
@@ -366,7 +310,45 @@ screenshotr_take_screenshot = libimobiledevice.screenshotr_take_screenshot
 screenshotr_take_screenshot.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_uint64)]
 screenshotr_take_screenshot.restype = c_int
 
-# Installation Proxy
+
+# --------------------------------- Syslog Relay -----------------------------------------
+
+
+class SyslogRelayError(IntEnum):
+    SYSLOG_RELAY_E_SUCCESS = 0
+    SYSLOG_RELAY_E_INVALID_ARG = -1
+    SYSLOG_RELAY_E_MUX_ERROR = -2
+    SYSLOG_RELAY_E_SSL_ERROR = -3
+    SYSLOG_RELAY_E_NOT_ENOUGH_DATA = -4
+    SYSLOG_RELAY_E_TIMEOUT = -5
+    SYSLOG_RELAY_E_UNKNOWN_ERROR = -256
+
+# typedef void (*syslog_relay_receive_cb_t)(char c, void *user_data);
+SyslogRelayReceiveCb = CFUNCTYPE(None, c_char, c_void_p)
+
+# syslog_relay_error_t syslog_relay_client_start_service(idevice_t device, syslog_relay_client_t * client, const char* label);
+syslog_relay_client_start_service = libimobiledevice.syslog_relay_client_start_service
+syslog_relay_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+syslog_relay_client_start_service.restype = c_int
+
+# syslog_relay_error_t syslog_relay_client_free(syslog_relay_client_t client);
+syslog_relay_client_free = libimobiledevice.syslog_relay_client_free
+syslog_relay_client_free.argtypes = [c_void_p]
+syslog_relay_client_free.restype = c_int
+
+# syslog_relay_error_t syslog_relay_start_capture(syslog_relay_client_t client, syslog_relay_receive_cb_t callback, void* user_data);
+syslog_relay_start_capture = libimobiledevice.syslog_relay_start_capture
+syslog_relay_start_capture.argtypes = [c_void_p, SyslogRelayReceiveCb, c_void_p]
+syslog_relay_start_capture.restype = c_int
+
+# syslog_relay_error_t syslog_relay_stop_capture(syslog_relay_client_t client);
+syslog_relay_stop_capture = libimobiledevice.syslog_relay_stop_capture
+syslog_relay_stop_capture.argtypes = [c_void_p]
+syslog_relay_stop_capture.restype = c_int
+
+
+# --------------------------------- Installation Proxy -----------------------------------------
+
 
 class InstProxyError(IntEnum):
     # /* custom */
@@ -473,6 +455,10 @@ instproxy_client_options_set_return_attributes = libimobiledevice.instproxy_clie
 instproxy_client_options_set_return_attributes.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p, c_char_p]
 instproxy_client_options_set_return_attributes.restype = None
 
+
+# --------------------------------- Spring board -----------------------------------------
+
+
 class SbservicesError(IntEnum):
     SBSERVICES_E_SUCCESS = 0
     SBSERVICES_E_INVALID_ARG = -1
@@ -499,6 +485,10 @@ sbservices_get_icon_pngdata.restype = c_int
 libimobiledevice_free = libimobiledevice.libimobiledevice_free
 libimobiledevice_free.argtypes = [c_void_p]
 libimobiledevice_free.restype = None
+
+
+# --------------------------------- Instrument -----------------------------------------
+
 
 class InstrumentError(IntEnum):
     INSTRUMENT_E_SUCCESS         =  0,
