@@ -14,10 +14,6 @@ from libimobiledevice import idevice_new_with_options, idevice_free
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def read_buffer_from_pointer(pointer, length):
-    return bytes(cast(pointer, POINTER(c_byte))[:length])
-
-
 class DeviceService(Service):
     """
     设备管理服务, 负责获取设备相关信息

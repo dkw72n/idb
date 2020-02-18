@@ -2,19 +2,39 @@ import argparse
 import json
 import os
 import sys
+import datetime
+
 
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
 from lockdown_service import LockdownService
 from libimobiledevice import IDeviceConnectionType
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
+from screenshotr_service import ScreenshotrService
 from spring_board_service import SpringBoardService
 from image_mounter_service import ImageMounterService
+
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+device_service = DeviceService()
+
+
+def _get_device_or_die(udid = None):
+    device = None
+    if udid is not None:
+        device = device_service.new_device(udid)
+    device_list = device_service.get_device_list()
+    if len(device_list) > 0:
+        device = device_service.new_device(device_list[0]['udid'])
+    if device is None:
+        print("No device attached")
+        exit(-1)
+    else:
+        return device
 
 
 def print_devices():
     print("List of devices attached")
-    device_service = DeviceService()
     device_list = device_service.get_device_list()
     for device in device_list:
         conn_type = "USB" if device['conn_type'] == IDeviceConnectionType.CONNECTION_USBMUXD else "WIFI"
@@ -22,7 +42,6 @@ def print_devices():
 
 
 def get_device_info_from_configs(product_type):
-    ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(ROOT_DIR, "ios_deviceinfo_new.json")) as fp:
         device_info_map = json.load(fp)
         if product_type in device_info_map:
@@ -31,8 +50,7 @@ def get_device_info_from_configs(product_type):
 
 
 def get_device_info(udid):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
+    device = _get_device_or_die(udid)
 
     lockdown_service = LockdownService()
     lockdown_client = lockdown_service.new_client(device)
@@ -59,6 +77,9 @@ def get_device_info(udid):
     gpu_type = device_info['gpuInfo']
     battery_info = device_info['batteryInfo'] # TODO:
 
+    lockdown_service.free_client(lockdown_client)
+    device_service.free_device(device)
+
     return {
         "os_type": "iOS",
         "device_name": device_name,
@@ -84,8 +105,7 @@ def print_device_info(udid):
 
 
 def print_get_value(udid, key=None):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
+    device = _get_device_or_die(udid)
 
     lockdown_service = LockdownService()
     lockdown_client = lockdown_service.new_client(device)
@@ -118,11 +138,7 @@ def get_app_list(device):
 
 
 def print_applications(udid):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
-    if device is None:
-        print("No device attached")
-        return
+    device = _get_device_or_die(udid)
 
     user_apps, system_apps = get_app_list(device)
     print("List of user applications installed:")
@@ -142,11 +158,7 @@ def print_applications(udid):
 
 
 def print_icon(udid, bundle_id, output):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
-    if device is None:
-        print("No device attached")
-        return
+    device = _get_device_or_die(udid)
 
     spring_board_service = SpringBoardService()
     spring_board_client = spring_board_service.new_client(device)
@@ -162,12 +174,26 @@ def print_icon(udid, bundle_id, output):
     device_service.free_device(device)
 
 
+def print_screenshot(udid, output = None):
+    device = _get_device_or_die(udid)
+
+    screenshotr_service = ScreenshotrService()
+    screenshotr_client = screenshotr_service.new_client(device)
+
+    imgdata, file_ext = screenshotr_service.take_screenshot(screenshotr_client)
+    if imgdata:
+        if output is None:
+            output = os.path.join(ROOT_DIR, "screenshot_%s%s" % (datetime.datetime.now().strftime("%Y%m%d_%H%M%S"), file_ext))
+        with open(output, "wb") as fp:
+            fp.write(imgdata)
+        print("Save screenshot image file at %s" % (os.path.abspath(output)))
+    else:
+        print("Error: Can not take screenshot")
+    screenshotr_service.free_client(screenshotr_client)
+    device_service.free_device(device)
+
 def print_image_lookup(udid, image_type = None):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
-    if device is None:
-        print("No device attached")
-        return
+    device = _get_device_or_die(udid)
 
     lockdown_service = LockdownService()
     lockdown_client = lockdown_service.new_client(device)
@@ -194,11 +220,7 @@ def print_image_lookup(udid, image_type = None):
     image_mounter_service.free_client(image_mounter_client)
 
 def print_mount_image(udid, image_type, image_file, image_signature_file):
-    device_service = DeviceService()
-    device = device_service.new_device(udid)
-    if device is None:
-        print("No device attached")
-        return
+    device = _get_device_or_die(udid)
 
     lockdown_service = LockdownService()
     lockdown_client = lockdown_service.new_client(device)
@@ -244,6 +266,9 @@ def main():
     mountimage_parser.add_argument("-t", "--image_type", required=False)
     mountimage_parser.add_argument("-i", "--image_file", required=False)
     mountimage_parser.add_argument("-s", "--sig_file", required=False)
+    # screenshot
+    screenshot_parser = cmd_parser.add_parser("screenshot")
+    screenshot_parser.add_argument("-o", "--output", required=False)
     # geticon
     geticon_parser = cmd_parser.add_parser("geticon")
     geticon_parser.add_argument("--bundle_id", required=True)
@@ -271,6 +296,8 @@ def main():
         print_mount_image(args.udid, args.image_type, args.image_file, args.sig_file)
     elif args.command == "geticon":
         print_icon(args.udid, args.bundle_id, args.output)
+    elif args.command == "screenshot":
+        print_screenshot(args.udid, args.output)
     elif args.command == "getvalue":
         print_get_value(args.udid, args.key)
     elif args.command == 'instrument':

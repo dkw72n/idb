@@ -12,11 +12,10 @@ from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_
 from bpylist import archiver, bplist
 import plistlib
 
+from utils import read_buffer_from_pointer
+
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
-def read_buffer_from_pointer(pointer, length):
-    return bytes(cast(pointer, POINTER(c_char))[:length])
-    #return bytes(cast(pointer, POINTER(c_byte))[:length])
 
 class LockdownService(Service):
     """
