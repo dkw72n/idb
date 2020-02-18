@@ -39,7 +39,7 @@ class ImageMounterService(Service):
         :return: bool 是否成功
         """
         ret = mobile_image_mounter_free(client)
-        return ret != MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS
+        return ret == MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS
 
     def lookup_image(self, client, image_type, product_version):
         plist_p = c_void_p()
@@ -85,6 +85,6 @@ class ImageMounterService(Service):
         :return: bool 是否成功
         """
         ret = mobile_image_mounter_hangup(client)
-        return ret != MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS
+        return ret == MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS
 
 

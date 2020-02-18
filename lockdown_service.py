@@ -41,7 +41,7 @@ class LockdownService(Service):
         :return: bool 是否成功
         """
         ret = lockdownd_client_free(client)
-        return ret != LockdowndError.LOCKDOWN_E_SUCCESS
+        return ret == LockdowndError.LOCKDOWN_E_SUCCESS
 
     def get_value(self, client, key):
         """

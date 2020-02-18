@@ -40,7 +40,7 @@ class SpringBoardService(Service):
         :return: bool 是否成功
         """
         ret = sbservices_client_free(client)
-        return ret != SbservicesError.SBSERVICES_E_SUCCESS
+        return ret == SbservicesError.SBSERVICES_E_SUCCESS
 
     def get_icon_pngdata(self, client, bundle_id):
         """

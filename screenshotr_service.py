@@ -38,7 +38,7 @@ class ScreenshotrService(Service):
         :return: bool 是否成功
         """
         ret = screenshotr_client_free(client)
-        return ret !=  ScreenshotrError.SCREENSHOTR_E_SUCCESS
+        return ret ==  ScreenshotrError.SCREENSHOTR_E_SUCCESS
 
     def take_screenshot(self, client):
         imgdata_p = c_void_p()

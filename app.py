@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import time
 import datetime
 
 
@@ -13,6 +14,7 @@ from instrument_service import instrument_main, setup_parser as setup_instrument
 from screenshotr_service import ScreenshotrService
 from spring_board_service import SpringBoardService
 from image_mounter_service import ImageMounterService
+from syslog_relay_service import SyslogRelayService
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -250,6 +252,32 @@ def print_mount_image(udid, image_type, image_file, image_signature_file):
 
     image_mounter_service.hangup(image_mounter_client)
     image_mounter_service.free_client(image_mounter_client)
+    device_service.free_device(device)
+
+
+line = ""
+def print_syslog(udid = None):
+    device = _get_device_or_die(udid)
+
+    syslog_relay_service = SyslogRelayService()
+    syslog_relay_client = syslog_relay_service.new_client(device)
+    def callback(char_data, user_data):
+        global line
+        if char_data == b"\n":
+            print(line)
+            line = ""
+        else:
+            line += char_data.decode("utf-8")
+
+    result = syslog_relay_service.start_capture(syslog_relay_client, callback)
+    if result:
+        print("System log:")
+        while True:
+            pass
+
+    syslog_relay_service.free_client(syslog_relay_client)
+    device_service.free_device(device)
+
 
 def main():
     argparser = argparse.ArgumentParser()
@@ -258,6 +286,7 @@ def main():
     cmd_parser.add_parser("devices")
     cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
+    cmd_parser.add_parser("syslog")
     # imagemounter
     lookupimage_parser = cmd_parser.add_parser("lookupimage")
     lookupimage_parser.add_argument("-t", "--image_type", required=False)
@@ -296,6 +325,8 @@ def main():
         print_mount_image(args.udid, args.image_type, args.image_file, args.sig_file)
     elif args.command == "geticon":
         print_icon(args.udid, args.bundle_id, args.output)
+    elif args.command == "syslog":
+        print_syslog(args.udid)
     elif args.command == "screenshot":
         print_screenshot(args.udid, args.output)
     elif args.command == "getvalue":

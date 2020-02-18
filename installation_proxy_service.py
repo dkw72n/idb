@@ -40,7 +40,7 @@ class InstallationProxyService(Service):
         :return: bool 是否成功
         """
         ret = instproxy_client_free(client)
-        return ret != InstProxyError.INSTPROXY_E_SUCCESS
+        return ret == InstProxyError.INSTPROXY_E_SUCCESS
 
     def browse(self, client, application_type):
         """
