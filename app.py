@@ -271,8 +271,11 @@ def print_syslog(udid = None):
 
     result = syslog_relay_service.start_capture(syslog_relay_client, callback)
     if result:
-        print("System log:")
-        while True:
+        print("System log:(pressing Ctrl+C to exit)")
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt:
             pass
 
     syslog_relay_service.free_client(syslog_relay_client)

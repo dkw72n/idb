@@ -140,7 +140,7 @@ com.apple.instruments.server.services.processcontrolbydictionary 4
 
 ```
 $ idb syslog
-System log:
+System log:(pressing Ctrl+C to exit)
 Feb 18 16:44:35 Sans-iPhone homed(HomeKitDaemon)[104] <Notice>: Remote access health monitor timer fired, checking state for all homes
 Feb 18 16:44:36 Sans-iPhone symptomsd(SymptomEvaluator)[117] <Notice>: NBSM: TCP metrics iteration:691 since 30.00 secs, ret=1: allflows=5/C=0/R=0/W=1/flows=0/unacked=0/rxbytes=0/txbytes=0/rxooo=0/rxdup=0/retx=0
 Feb 18 16:44:36 Sans-iPhone symptomsd(SymptomEvaluator)[117] <Notice>: NBSM: TCP progress metrics score: 20, problem ratio: 0.20 (baseline: 0.08)
