@@ -339,6 +339,33 @@ mobile_image_mounter_hangup = libimobiledevice.mobile_image_mounter_hangup
 mobile_image_mounter_hangup.argtypes = [c_void_p]
 mobile_image_mounter_hangup.restype = c_int
 
+# Screenshotr
+
+class ScreenshotrError(IntEnum):
+    SCREENSHOTR_E_SUCCESS = 0,
+    SCREENSHOTR_E_INVALID_ARG = -1
+    SCREENSHOTR_E_PLIST_ERROR = -2
+    SCREENSHOTR_E_MUX_ERROR = -3
+    SCREENSHOTR_E_SSL_ERROR = -4
+    SCREENSHOTR_E_RECEIVE_TIMEOUT = -5
+    SCREENSHOTR_E_BAD_VERSION = -6
+    SCREENSHOTR_E_UNKNOWN_ERROR = -256
+
+# screenshotr_error_t screenshotr_client_start_service(idevice_t device, screenshotr_client_t* client, const char* label);
+screenshotr_client_start_service = libimobiledevice.screenshotr_client_start_service
+screenshotr_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+screenshotr_client_start_service.restype = c_int
+
+# screenshotr_error_t screenshotr_client_free(screenshotr_client_t client);
+screenshotr_client_free = libimobiledevice.screenshotr_client_free
+screenshotr_client_free.argtypes = [c_void_p]
+screenshotr_client_free.restype = c_int
+
+# screenshotr_error_t screenshotr_take_screenshot(screenshotr_client_t client, char **imgdata, uint64_t *imgsize);
+screenshotr_take_screenshot = libimobiledevice.screenshotr_take_screenshot
+screenshotr_take_screenshot.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_uint64)]
+screenshotr_take_screenshot.restype = c_int
+
 # Installation Proxy
 
 class InstProxyError(IntEnum):

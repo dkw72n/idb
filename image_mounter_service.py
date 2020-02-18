@@ -14,9 +14,6 @@ from utils import read_data_from_plist_ptr, compare_version
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def read_buffer_from_pointer(pointer, length):
-    return bytes(cast(pointer, POINTER(c_byte))[:length])
-
 
 class ImageMounterService(Service):
     """

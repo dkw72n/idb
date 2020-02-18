@@ -109,3 +109,11 @@ Image mount status: Yes
 $ idb --udid 97006ebdc8bc5daed2e354f4addae4fd2a81c52d mountimage --image_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg --sig_file F:\lds\DeviceSupport\DeviceSupport\13.3\DeveloperDiskImage.dmg.signature
 Mount result: True
 ```
+
+
+## Take screenshot
+
+```
+$ idb screenshot
+Save screenshot image file at F:\lds\project\idb\screenshot_20200218_112501.png
+```

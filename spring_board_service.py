@@ -11,11 +11,9 @@ from libimobiledevice import sbservices_client_start_service, sbservices_client_
 from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free
 import plistlib
 
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+from utils import read_buffer_from_pointer
 
-def read_buffer_from_pointer(pointer, length):
-    return bytes(cast(pointer, POINTER(c_char))[:length])
-    #return bytes(cast(pointer, POINTER(c_byte))[:length])
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class SpringBoardService(Service):
