@@ -400,7 +400,7 @@ def test(rpc):
 def instrument_main(device, opts):
     device_service = DeviceService()
     rpc = InstrumentRPC()
-    if not rpc.init(device):
+    if not rpc.init(DTXUSBTransport, device):
         print("failed to init rpc")
         device_service.free_device(device)
         return
@@ -450,7 +450,7 @@ class DTXClientMixin:
             return None
         return DTXMessage.from_bytes(header_buffer + body_buffer)
 
-class InstrumentService(Service, DTXClientMixin):
+class DTXUSBTransport:
     """
     Instruments 服务，用于监控设备状态, 采集性能数据
     """
@@ -552,7 +552,7 @@ class InstrumentRPC:
 
     def __init__(self):
         self._cli = None
-        self._is = InstrumentService()
+        self._is = None
         self._recv_thread = None
         self._running = False
         self._callbacks = {}
@@ -563,14 +563,17 @@ class InstrumentRPC:
         self._unhanled_callback = None
         self._channel_callbacks = {}
 
-    def init(self, device):
+    def init(self, transport, arg):
         """
         初始化 instrument rpc 服务:
         成功后必须调用 deinit 反初始化
         :param device: 由DeviceService创建的device对象（C对象）
         :return: bool 是否成功
         """
-        self._cli = self._is.new_client(device)
+        class T(transport, DTXClientMixin):
+            pass
+        self._is = T()
+        self._cli = self._is.new_client(arg)
         if self._cli is None:
             return False
         return True
