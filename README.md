@@ -147,3 +147,40 @@ Feb 18 16:44:36 Sans-iPhone symptomsd(SymptomEvaluator)[117] <Notice>: NBSM: TCP
 Feb 18 16:44:36 Sans-iPhone CommCenter(libATCommandStudioDynamic.dylib)[81] <Notice>: QMI: Svc=0xe2(BSP) Ind MsgId=0xe021 Bin=[<private>]
 Feb 18 16:44:37 Sans-iPhone wifid(WiFiPolicy)[45] <Notice>: __WiFiLQAMgrLogStats(helloworld:Stationary): Rssi: -65 {0 0} Snr: 0 Cca: 41 (S:0 O:3
 ```
+
+
+## List directory
+
+```
+$ idb ls /
+Downloads Books Photos Recordings DCIM iTunesRestore iTunes_Control MediaAnalysis PhotoData PublicStaging Purchases 
+```
+
+## Make directory
+
+```
+$ idb mkdir /Temp
+Make directory /Temp Success
+```
+
+## Delete file or directory 
+
+```
+$ idb rm /Temp
+/Temp Deleted.
+```
+
+## Push file into device
+
+```
+$ idb push test.txt /Temp
+push file test.txt to /Temp
+```
+
+
+## Pull file from device
+
+```
+$ idb pull /Temp/test.txt
+pull file F:\lds\project\idb\test.txt
+```

@@ -5,7 +5,7 @@ import sys
 import time
 import datetime
 
-
+from afc_service import AfcService
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
 from lockdown_service import LockdownService
@@ -282,6 +282,103 @@ def print_syslog(udid = None):
     device_service.free_device(device)
 
 
+def print_list(udid, device_directory = "."):
+    device = _get_device_or_die(udid)
+
+    afc_service = AfcService()
+    afc_client = afc_service.new_client(device)
+    file_list = afc_service.read_directory(afc_client, device_directory)
+    print("List of directory %s:" % device_directory)
+    if file_list:
+        for file in file_list:
+            print(file['filename'], end=" ")
+
+    afc_service.free_client(afc_client)
+    device_service.free_device(device)
+
+
+def pull_file(udid, remote_file): # TODO: pull directory
+    device = _get_device_or_die(udid)
+
+    afc_service = AfcService()
+    afc_client = afc_service.new_client(device)
+
+    afc_file = afc_service.open_file(afc_client, remote_file, "r")
+    output_file = os.path.join(ROOT_DIR, os.path.basename(remote_file))
+    output = open(output_file, "wb")
+    while True:
+        buffer = afc_file.read(1024)
+        output.write(buffer)
+        if not buffer:
+            break
+    output.close()
+    afc_file.close()
+    afc_service.free_client(afc_client)
+    device_service.free_device(device)
+    print("pull file %s" % output_file)
+
+
+def push_file(udid, local_file, device_directory):
+    if not os.path.exists(local_file):
+        print("Error: %s is not exists" % local_file)
+        return
+
+    device = _get_device_or_die(udid)
+
+    afc_service = AfcService()
+    afc_client = afc_service.new_client(device)
+
+    success = afc_service.make_directory(afc_client, device_directory) # TODO: check
+    remote_file = device_directory + "/" + os.path.basename(local_file)
+    afc_file = afc_service.open_file(afc_client, remote_file, "w")
+    input_file = open(local_file, "rb")
+    while True:
+        buffer = input_file.read(1024)
+        if not buffer:
+            break
+        afc_file.write(buffer)
+    input_file.close()
+    afc_file.close()
+    afc_service.free_client(afc_client)
+    device_service.free_device(device)
+    print("push file %s to %s" % (local_file, remote_file))
+
+
+def make_directory(udid, device_directory):
+    device = _get_device_or_die(udid)
+
+    afc_service = AfcService()
+    afc_client = afc_service.new_client(device)
+
+    result = afc_service.make_directory(afc_client, device_directory)
+    print("Make directory %s %s" % (device_directory, "Success" if result else "Fail"))
+
+    afc_service.free_client(afc_client)
+    device_service.free_device(device)
+
+
+def remove_path(udid, device_path):
+    device = _get_device_or_die(udid)
+
+    afc_service = AfcService()
+    afc_client = afc_service.new_client(device)
+
+    result = False
+    error = None
+    try:
+        result = afc_service.remove_path(afc_client, device_path)
+    except IOError as e:
+        error = e
+
+    if result:
+        print("%s Deleted." % device_path)
+    else:
+        print("Error: %s" % error)
+
+    afc_service.free_client(afc_client)
+    device_service.free_device(device)
+
+
 def main():
     argparser = argparse.ArgumentParser()
     # argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename", "instrument"])
@@ -290,6 +387,22 @@ def main():
     cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
     cmd_parser.add_parser("syslog")
+    # list
+    list_parser = cmd_parser.add_parser("ls")
+    list_parser.add_argument("device_directory")
+    # mkdir
+    list_parser = cmd_parser.add_parser("mkdir")
+    list_parser.add_argument("device_directory")
+    # rm
+    list_parser = cmd_parser.add_parser("rm")
+    list_parser.add_argument("device_path")
+    # pull file
+    pull_parser = cmd_parser.add_parser("pull")
+    pull_parser.add_argument("remote_file")
+    # push file
+    push_parser = cmd_parser.add_parser("push")
+    push_parser.add_argument("local_file")
+    push_parser.add_argument("device_directory")
     # imagemounter
     lookupimage_parser = cmd_parser.add_parser("lookupimage")
     lookupimage_parser.add_argument("-t", "--image_type", required=False)
@@ -336,6 +449,16 @@ def main():
         print_get_value(args.udid, args.key)
     elif args.command == 'instrument':
         instrument_main(_get_device_or_die(args.udid), args)
+    elif args.command == 'ls':
+        print_list(args.udid, args.device_directory)
+    elif args.command == 'mkdir':
+        make_directory(args.udid, args.device_directory)
+    elif args.command == 'rm':
+        remove_path(args.udid, args.device_path)
+    elif args.command == 'pull':
+        pull_file(args.udid, args.remote_file)
+    elif args.command == 'push':
+        push_file(args.udid, args.local_file, args.device_directory)
     else:
         argparser.print_usage()
 
