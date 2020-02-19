@@ -103,54 +103,6 @@ EVP_DecryptFinal_ex.argtypes = [c_void_p, c_void_p, POINTER(c_int)]
 EVP_aes_256_cbc = libcrypto.EVP_aes_256_cbc
 EVP_aes_256_cbc.restype = c_void_p
 
-def aes_256_cbc_encrypt(buf, key, iv=None):
-    out_bytes = c_int()
-    out = create_string_buffer(8192)
-    ret = b''
-    ctx = EVP_CIPHER_CTX_new()
-    EVP_CIPHER_CTX_reset(ctx)
-    if iv is None: iv = b'\x00' * 16
-    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), None, key, iv)
-    cur = 0
-    try:
-        while cur < len(buf):
-            step = min(len(buf) - cur, 4096)
-            if not EVP_EncryptUpdate(ctx, out, pointer(out_bytes), buf[cur:cur + step], step):
-                return None
-            ret += out[:out_bytes.value]
-            cur += step
-        if not EVP_EncryptFinal_ex(ctx, out, pointer(out_bytes)):
-            return None
-        ret += out[:out_bytes.value]
-    finally:
-        EVP_CIPHER_CTX_reset(ctx)
-        EVP_CIPHER_CTX_free(ctx)
-    return ret
-
-def aes_256_cbc_decrypt(buf, key, iv=None):
-    out_bytes = c_int()
-    out = create_string_buffer(8192)
-    ret = b''
-    ctx = EVP_CIPHER_CTX_new()
-    EVP_CIPHER_CTX_reset(ctx)
-    if iv is None: iv = b'\x00' * 16
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), None, key, iv)
-    try:
-        cur = 0
-        while cur < len(buf):
-            step = min(len(buf) - cur, 4096)
-            if not EVP_DecryptUpdate(ctx, out, pointer(out_bytes), buf[cur:cur + step], step):
-                return None
-            ret += out[:out_bytes.value]
-            cur += step
-        if not EVP_DecryptFinal_ex(ctx, out, pointer(out_bytes)):
-            return None
-        ret += out[:out_bytes.value]
-    finally:
-        EVP_CIPHER_CTX_reset(ctx)
-        EVP_CIPHER_CTX_free(ctx)
-    return ret
-
 # --------------------------------- IDevice -----------------------------------------
 
 
