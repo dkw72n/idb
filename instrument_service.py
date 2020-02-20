@@ -17,6 +17,7 @@ from dtxlib import DTXMessage, DTXMessageHeader,    \
     auxiliary_to_pyobject, pyobject_to_auxiliary,   \
     pyobject_to_selector, selector_to_pyobject
 from bpylist import archiver, bplist
+import struct
 
 allowed = '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890+-_=()*&^%$#@![]{}\\|;\':"<>?,./`~'
 
@@ -344,8 +345,19 @@ def cmd_coreprofile(rpc):
     rpc.stop()
 
 def cmd_power(rpc):
+    headers = ['startingTime', 'duration', 'level'] # DTPower
+    ctx = {
+        'remained': b''
+    }
     def on_channel_message(res):
         print(res.parsed)
+        ctx['remained'] += res.parsed['data']
+        cur = 0
+        while cur + 3 * 8 <= len(ctx['remained']):
+            print("[level.dat]", dict(zip(headers, struct.unpack('ddd', ctx['remained'][cur: cur + 3 * 8]))))
+            cur += 3 * 8
+            pass
+        ctx['remained'] = ctx['remained'][cur:]
         #print(res.plist)
         #print(res.raw.get_selector())
     rpc.start()
