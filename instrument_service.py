@@ -133,6 +133,8 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("netstat")
     p.add_argument("pid", type=float)
+    p = instrument_cmd_parsers.add_parser("kill")
+    p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("wireless")
@@ -327,6 +329,12 @@ def cmd_netstat(rpc, pid):
         pass
     rpc.stop()
 
+def cmd_kill(rpc, pid):
+    rpc.start()
+    channel = "com.apple.instruments.server.services.processcontrol"
+    print(rpc.call(channel, "killPid:", pid).parsed)
+    rpc.stop()
+
 def cmd_coreprofile(rpc):
     def on_channel_message(res):
         #print(res.parsed)
@@ -468,6 +476,8 @@ def instrument_main(device, opts):
             cmd_energy(rpc, opts.pid)
         elif opts.instrument_cmd == 'netstat':
             cmd_netstat(rpc, opts.pid)
+        elif opts.instrument_cmd == 'kill':
+            cmd_kill(rpc, opts.pid)
         elif opts.instrument_cmd == 'coreprofile':
             cmd_coreprofile(rpc)
         elif opts.instrument_cmd == 'power':
