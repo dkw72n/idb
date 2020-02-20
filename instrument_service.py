@@ -134,6 +134,7 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
+    instrument_cmd_parsers.add_parser("wireless")
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -340,6 +341,7 @@ def cmd_coreprofile(rpc):
     except:
         pass
     print("stop", rpc.call(channel, "stop").parsed)
+    rpc.stop()
 
 def cmd_power(rpc):
     rpc.start()
@@ -352,6 +354,33 @@ def cmd_power(rpc):
     except:
         pass
     print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
+    rpc.stop()
+
+def cmd_wireless(rpc):
+    def dropped_message(res):
+        print("[DROP]", res.plist, res.raw.channel_code)
+        pass
+    def channel_canceled(res):
+        print("not supported:", res.plist)
+        rpc.stop()
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.register_callback("_channelCanceled:", channel_canceled)
+    rpc.start()
+    channel = "com.apple.instruments.server.services.wireless"
+    enabled = rpc.call(channel, "isServiceEnabled").parsed
+    print("enabled", enabled)
+    if enabled:
+        print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+    print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat_test", float(77498864), "U" * 32).parsed)
+    enabled = rpc.call(channel, "isServiceEnabled").parsed
+    print("enabled", enabled)
+    if enabled:
+        try:
+            while 1: time.sleep(1)
+        except:
+            pass
+        print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+    rpc.stop()
 
 def test(rpc):
 
@@ -425,6 +454,8 @@ def instrument_main(device, opts):
             cmd_coreprofile(rpc)
         elif opts.instrument_cmd == 'power':
             cmd_power(rpc)
+        elif opts.instrument_cmd == 'wireless':
+            cmd_wireless(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
