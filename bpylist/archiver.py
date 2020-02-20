@@ -104,7 +104,19 @@ class DictArchive:
 
         return d
 
+class MutableStringArchive:
+    "Delegate for packing/unpacking NSMutableString objects"
 
+    def decode_archive(archive):
+        s = archive.decode('NS.string')
+        return s
+
+class MutableDataArchive:
+    "Delegate for packing/unpacking NSMutableData objects"
+
+    def decode_archive(archive):
+        s = archive.decode('NS.data')
+        return s
 class ListArchive:
     "Delegate for packing/unpacking NS(Mutable)Array objects"
 
@@ -468,7 +480,9 @@ UNARCHIVE_CLASS_MAP = {
     'NSNull':              NullArchive,
     'NSError':             ErrorArchive,
     'NSException':         ExceptionArchive,
+    'NSMutableString':     MutableStringArchive,
     'DTSysmonTapMessage':  TODOArchive,
+    'NSMutableData':       MutableDataArchive,
     }
 
 

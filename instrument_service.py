@@ -344,11 +344,17 @@ def cmd_coreprofile(rpc):
     rpc.stop()
 
 def cmd_power(rpc):
+    def on_channel_message(res):
+        print(res.parsed)
+        #print(res.plist)
+        #print(res.raw.get_selector())
     rpc.start()
     channel = "com.apple.instruments.server.services.power"
+    rpc.register_channel_callback(channel, on_channel_message)
     stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
     print("open", stream_num)
     print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
+    print("[!] wait a few seconds, be patient...")
     try:
         while 1: time.sleep(10)
     except:
@@ -774,9 +780,10 @@ def main():
         print("No devices attached!")
         return
     opts.udid = devices[0]['udid']
+    device = ds.new_device(opts.udid)
     print(opts)
-    instrument_main(None, opts)
-
+    instrument_main(device, opts)
+    ds.free_device(device)
 
 if __name__ == '__main__':
     #d = DTXMessage.from_bytes(open("core2.bin", "rb").read())
