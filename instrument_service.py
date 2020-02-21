@@ -17,6 +17,7 @@ from dtxlib import DTXMessage, DTXMessageHeader,    \
     auxiliary_to_pyobject, pyobject_to_auxiliary,   \
     pyobject_to_selector, selector_to_pyobject
 from bpylist import archiver, bplist
+import struct
 
 allowed = '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890+-_=()*&^%$#@![]{}\\|;\':"<>?,./`~'
 
@@ -132,8 +133,11 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("netstat")
     p.add_argument("pid", type=float)
+    p = instrument_cmd_parsers.add_parser("kill")
+    p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
+    instrument_cmd_parsers.add_parser("wireless")
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -325,6 +329,12 @@ def cmd_netstat(rpc, pid):
         pass
     rpc.stop()
 
+def cmd_kill(rpc, pid):
+    rpc.start()
+    channel = "com.apple.instruments.server.services.processcontrol"
+    print(rpc.call(channel, "killPid:", pid).parsed)
+    rpc.stop()
+
 def cmd_coreprofile(rpc):
     def on_channel_message(res):
         #print(res.parsed)
@@ -340,18 +350,63 @@ def cmd_coreprofile(rpc):
     except:
         pass
     print("stop", rpc.call(channel, "stop").parsed)
+    rpc.stop()
 
 def cmd_power(rpc):
+    headers = ['startingTime', 'duration', 'level'] # DTPower
+    ctx = {
+        'remained': b''
+    }
+    def on_channel_message(res):
+        print(res.parsed)
+        ctx['remained'] += res.parsed['data']
+        cur = 0
+        while cur + 3 * 8 <= len(ctx['remained']):
+            print("[level.dat]", dict(zip(headers, struct.unpack('ddd', ctx['remained'][cur: cur + 3 * 8]))))
+            cur += 3 * 8
+            pass
+        ctx['remained'] = ctx['remained'][cur:]
+        #print(res.plist)
+        #print(res.raw.get_selector())
     rpc.start()
     channel = "com.apple.instruments.server.services.power"
+    rpc.register_channel_callback(channel, on_channel_message)
     stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
     print("open", stream_num)
     print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
+    print("[!] wait a few seconds, be patient...")
     try:
         while 1: time.sleep(10)
     except:
         pass
     print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
+    rpc.stop()
+
+def cmd_wireless(rpc):
+    def dropped_message(res):
+        print("[DROP]", res.plist, res.raw.channel_code)
+        pass
+    def channel_canceled(res):
+        print("not supported:", res.plist)
+        rpc.stop()
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.register_callback("_channelCanceled:", channel_canceled)
+    rpc.start()
+    channel = "com.apple.instruments.server.services.wireless"
+    enabled = rpc.call(channel, "isServiceEnabled").parsed
+    print("enabled", enabled)
+    if enabled:
+        print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+    print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat_test", float(77498864), "U" * 32).parsed)
+    enabled = rpc.call(channel, "isServiceEnabled").parsed
+    print("enabled", enabled)
+    if enabled:
+        try:
+            while 1: time.sleep(1)
+        except:
+            pass
+        print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+    rpc.stop()
 
 def test(rpc):
 
@@ -421,10 +476,14 @@ def instrument_main(device, opts):
             cmd_energy(rpc, opts.pid)
         elif opts.instrument_cmd == 'netstat':
             cmd_netstat(rpc, opts.pid)
+        elif opts.instrument_cmd == 'kill':
+            cmd_kill(rpc, opts.pid)
         elif opts.instrument_cmd == 'coreprofile':
             cmd_coreprofile(rpc)
         elif opts.instrument_cmd == 'power':
             cmd_power(rpc)
+        elif opts.instrument_cmd == 'wireless':
+            cmd_wireless(rpc)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)
@@ -743,9 +802,10 @@ def main():
         print("No devices attached!")
         return
     opts.udid = devices[0]['udid']
+    device = ds.new_device(opts.udid)
     print(opts)
-    instrument_main(None, opts)
-
+    instrument_main(device, opts)
+    ds.free_device(device)
 
 if __name__ == '__main__':
     #d = DTXMessage.from_bytes(open("core2.bin", "rb").read())

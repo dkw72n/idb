@@ -128,13 +128,229 @@ isApplication	name	pid	realAppName	startDate
 False	filecoordinationd	144	/usr/sbin/filecoordinationd	bpylist.timestamp datetime.datetime(2020, 2, 17, 15, 12, 42, 829858, tzinfo=datetime.timezone.utc)```
 ```
 
-## Instrument channels
+## Instrument
+
+### channels
 
 ```
 $ idb instrument channels
 Published capabilities:
 com.apple.instruments.server.services.processcontrolbydictionary 4
 ```
+
+### graphics
+
+```
+$ idb instrument graphics
+[GRAPHICS] 
+{
+    'stdTextureCreationBytes': 0,
+    'XRVideoCardRunTimeStamp': 4129783,           // timestamp(us)
+    'SplitSceneCount': 0,
+    'Device Utilization %': 0,                    // GPU Usage - Device
+    'finishGLWaitTime': 0,
+    'recoveryCount': 0,
+    'gartUsedBytes': 45383680,
+    'gartMapInBytesPerSample': 0,
+    'IOGLBundleName': 'Built-In',
+    'CoreAnimationFramesPerSecond': 58,          // FPS - fps
+    'freeToAllocGPUAddressWaitTime': 0,
+    'TiledSceneBytes': 118784,
+    'Renderer Utilization %': 0,                // GPU Usage - Render
+    'Tiler Utilization %': 0,                   // GPU Usage - Tiler
+    'oolTextureCreationBytes': 0,
+    'gartMapOutBytesPerSample': 1998848,
+    'contextGLCount': 0,
+    'agpTextureCreationBytes': 0,
+    'CommandBufferRenderCount': 31,
+    'iosurfaceTextureCreationBytes': 0,
+    'textureCount': 976,
+    'hardwareWaitTime': 0,
+    'agprefTextureCreationBytes': 0
+}
+```
+
+### sysmontap
+
+```
+$ idb instrument sysmontap
+[{
+    'Processes': {
+        0: [55934222336, None, 165363256, 69663420, 192643072, 1206386688, 335527936, 0, None, 2096201728],
+        144: [4365975552, None, 8395, 301, 2458024, 1900544, 2310144, 144, None, 17207296],
+        49: [4393910272, None, 105903, 30000, 3998160, 2375680, 3833856, 49, None, 47230976],
+        3018: [4325965824, None, 113, 2, 966960, 655360, 868352, 3018, None, 966656],
+        98: [4395515904, None, 211910, 55, 3293608, 4177920, 3145728, 98, None, 494104576],
+        2972: [4741709824, None, 2849, 34, 23528288, 14057472, 23248896, 2972, None, 155648],
+        52: [4342824960, None, 283782, 29356, 1704360, 1687552, 1556480, 52, None, 5021696],
+        2494: [4361601024, None, 421, 18, 1311144, 475136, 1146880, 2494, None, 237568],
+    },
+    'Type': 7,
+    'EndMachAbsTime': 3595494138985,
+    'ProcessesAttributes': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead'],
+    'StartMachAbsTime': 3595491365204
+}]
+
+[{
+    'PerCPUUsage': [{
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 6.930693069306926,
+        'CPU_UserLoad': -1.0
+    }, {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 0.9900990099009874,
+        'CPU_UserLoad': -1.0
+    }, {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 0.0,
+        'CPU_UserLoad': -1.0
+    }, {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 0.0,
+        'CPU_UserLoad': -1.0
+    }, {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 1.0,
+        'CPU_UserLoad': -1.0
+    }, {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 8.0,
+        'CPU_UserLoad': -1.0
+    }],
+    'EndMachAbsTime': 3595515481450,
+    'CPUCount': 6,
+    'EnabledCPUs': 6,
+    'SystemCPUUsage': {
+        'CPU_NiceLoad': 0.0,
+        'CPU_SystemLoad': -1.0,
+        'CPU_TotalLoad': 16.920792079207914,         // CPU - Total Usage = SystemCPUUsage.CPU_TotalLoad / EnabledCPUs
+        'CPU_UserLoad': -1.0
+    },
+    'Type': 33,
+    'StartMachAbsTime': 3595491365204
+}, {
+    'Processes': {
+        0: [55934222336, 0.02943223109141613, 165363748, 69663619, 192643072, 1206353920, 335495168, 0, None, 2096201728],
+        144: [4365975552, 0.0, 8395, 301, 2458024, 1900544, 2310144, 144, 0.0, 17207296],
+        49: [4393910272, 0.0, 105903, 30000, 3998160, 2375680, 3833856, 49, 0.0, 47230976],
+        3018: [4325965824, 0.0, 113, 2, 966960, 655360, 868352, 3018, 0.0, 966656],
+        98: [4395515904, 0.0055491588698022894, 211914, 55, 3293608, 4177920, 3145728, 98, 0.23121495260104377, 494104576],
+        2972: [4741709824, 0.0, 2849, 34, 23528288, 14057472, 23248896, 2972, 0.0, 155648],
+        52: [4342824960, 0.0, 283782, 29356, 1704360, 1687552, 1556480, 52, 0.0, 5021696],
+        2494: [4361601024, 0.0, 421, 18, 1311144, 475136, 1146880, 2494, 0.0, 237568],
+    },
+    'Type': 5,
+    'EndMachAbsTime': 3595520484394,
+    'StartMachAbsTime': 3595494138986
+}]
+```
+
+
+### activity(IOS < 11.0)
+
+TODO
+
+### networking(Wifi mode)
+
+```
+$ idb instrument networking
+connection-detected {'LocalAddress': '192.168.31.195:63993', 'RemoteAddress': '17.57.145.102:5223', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 131072, 'RecvBufferUsed': 0, 'SerialNumber': 2, 'Kind': 1}
+connection-detected {'LocalAddress': '172.31.57.105:63992', 'RemoteAddress': '17.252.204.141:5223', 'InterfaceIndex': 3, 'Pid': -2, 'RecvBufferSize': 131072, 'RecvBufferUsed': 0, 'SerialNumber': 3, 'Kind': 1}
+connection-detected {'LocalAddress': '192.168.31.195:56950', 'RemoteAddress': '17.56.8.133:993', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 131072, 'RecvBufferUsed': 0, 'SerialNumber': 12, 'Kind': 1}
+connection-detected {'LocalAddress': '0.0.0.0:59998', 'RemoteAddress': '0.0.0.0:0', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 0, 'RecvBufferUsed': 0, 'SerialNumber': 13, 'Kind': 2}
+connection-detected {'LocalAddress': '[::]:59814', 'RemoteAddress': '[::]:0', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 0, 'RecvBufferUsed': 0, 'SerialNumber': 38, 'Kind': 2}
+connection-detected {'LocalAddress': '[::]:5353', 'RemoteAddress': '[::]:0', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 196724, 'RecvBufferUsed': 0, 'SerialNumber': 52, 'Kind': 2}
+connection-detected {'LocalAddress': '0.0.0.0:5353', 'RemoteAddress': '0.0.0.0:0', 'InterfaceIndex': 8, 'Pid': -2, 'RecvBufferSize': 196724, 'RecvBufferUsed': 0, 'SerialNumber': 53, 'Kind': 2}
+interface-detection {'InterfaceIndex': 8, 'Name': 'en0'}
+interface-detection {'InterfaceIndex': 3, 'Name': 'pdp_ip0'}
+connection-update {
+    'RxPackets': 20448,
+    'RxBytes': 4242060,             // download
+    'TxPackets': 15446,
+    'TxBytes': 3144553,             // upload
+    'RxDups': None,
+    'RxOOO': None,
+    'TxRetx': None,
+    'MinRTT': None,
+    'AvgRTT': None,
+    'ConnectionSerial': 53
+}
+```
+
+
+### netstat(USB mode)
+
+```
+idb instrument netstat 2468
+start {2468.0}
+{
+    2468.0: {
+        'net.packets.delta': 0,
+        'time': 1582189905.198155,
+        'net.tx.bytes': 56636,      // upload
+        'net.bytes.delta': 0,
+        'net.rx.packets.delta': 0,
+        'net.tx.packets': 303,
+        'net.rx.bytes': 293823,     // download
+        'net.bytes': 350459,
+        'net.tx.bytes.delta': 0,
+        'net.rx.bytes.delta': 0,
+        'net.rx.packets': 416,
+        'pid': 2468.0,
+        'net.tx.packets.delta': 0,
+        'net.packets': 719
+    }
+}
+```
+
+
+### energy
+
+```
+$ idb instrument energy 2468
+{
+    2230.0: {
+        'energy.overhead': 490.0,                    // Energy - overheadEnergy
+        'kIDEGaugeSecondsSinceInitialQueryKey': 11,
+        'energy.version': 1,
+        'energy.gpu.cost': 0,                       // Energy - gpuEnergy
+        'energy.cpu.cost': 35.94272039376739,       // Energy - cpuEnergy
+        'energy.networkning.overhead': 500,
+        'energy.appstate.cost': 8,
+        'energy.location.overhead': 0,
+        'energy.thermalstate.cost': 0,
+        'energy.networking.cost': 0,                // Energy - networkEnergy
+        'energy.cost': 25.942720393767388,
+        'energy.cpu.overhead': 0,
+        'energy.location.cost': 0,                  // Energy - locationEnergy
+        'energy.gpu.overhead': 0,
+        'energy.appstate.overhead': 0,
+        'energy.inducedthermalstate.cost': -1
+    }
+}
+```
+
+productVersion >= 11.0:
+* energy.cpu.cost: cpuEnergy
+* energy.gpu.cost: gpuEnergy
+* energy.networking.cost: networkEnergy
+* energy.location.cost: locationEnergy
+* energy.display.cost: displayEnergy
+* energy.overhead: overheadEnergy
+
+productVersion < 11.0:
+* energy.CPU: cpuEnergy
+* energy.GPU: gpuEnergy
+* energy.networking: networkEnergy
+* energy.location: locationEnergy
+* energy.overhead: overheadEnergy
+
 
 ## System log
 
@@ -146,4 +362,41 @@ Feb 18 16:44:36 Sans-iPhone symptomsd(SymptomEvaluator)[117] <Notice>: NBSM: TCP
 Feb 18 16:44:36 Sans-iPhone symptomsd(SymptomEvaluator)[117] <Notice>: NBSM: TCP progress metrics score: 20, problem ratio: 0.20 (baseline: 0.08)
 Feb 18 16:44:36 Sans-iPhone CommCenter(libATCommandStudioDynamic.dylib)[81] <Notice>: QMI: Svc=0xe2(BSP) Ind MsgId=0xe021 Bin=[<private>]
 Feb 18 16:44:37 Sans-iPhone wifid(WiFiPolicy)[45] <Notice>: __WiFiLQAMgrLogStats(helloworld:Stationary): Rssi: -65 {0 0} Snr: 0 Cca: 41 (S:0 O:3
+```
+
+
+## List directory
+
+```
+$ idb ls /
+Downloads Books Photos Recordings DCIM iTunesRestore iTunes_Control MediaAnalysis PhotoData PublicStaging Purchases 
+```
+
+## Make directory
+
+```
+$ idb mkdir /Temp
+Make directory /Temp Success
+```
+
+## Delete file or directory 
+
+```
+$ idb rm /Temp
+/Temp Deleted.
+```
+
+## Push file into device
+
+```
+$ idb push test.txt /Temp
+push file test.txt to /Temp
+```
+
+
+## Pull file from device
+
+```
+$ idb pull /Temp/test.txt
+pull file F:\lds\project\idb\test.txt
 ```
