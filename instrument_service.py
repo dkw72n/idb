@@ -222,7 +222,7 @@ def cmd_timeinfo(rpc):
         "mach_absolute_time": machTimeInfo[0],
         "mach_timebase_info": {
             "number": machTimeInfo[1],
-            "demo": machTimeInfo[2]
+            "denom": machTimeInfo[2]
         }
     })
     rpc.stop()
