@@ -127,6 +127,7 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("sysmontap")
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("timeinfo")
     instrument_cmd_parsers.add_parser("activity")
     instrument_cmd_parsers.add_parser("networking")
     p = instrument_cmd_parsers.add_parser("energy")
@@ -212,6 +213,12 @@ def cmd_running(rpc):
     for item in running:
         sorted_item = sorted(item.items())
         print('\t'.join(map(str, [v for _, v in sorted_item])))
+    rpc.stop()
+
+def cmd_timeinfo(rpc):
+    rpc.start()
+    machTimeInfo = rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed
+    print("machTimeInfo:", machTimeInfo)
     rpc.stop()
 
 def pre_call(rpc):
@@ -362,7 +369,7 @@ def cmd_power(rpc):
         ctx['remained'] += res.parsed['data']
         cur = 0
         while cur + 3 * 8 <= len(ctx['remained']):
-            print("[level.dat]", dict(zip(headers, struct.unpack('ddd', ctx['remained'][cur: cur + 3 * 8]))))
+            print("[level.dat]", dict(zip(headers, struct.unpack('>ddd', ctx['remained'][cur: cur + 3 * 8]))))
             cur += 3 * 8
             pass
         ctx['remained'] = ctx['remained'][cur:]
@@ -468,6 +475,8 @@ def instrument_main(device, opts):
             cmd_graphics(rpc)
         elif opts.instrument_cmd == 'running':
             cmd_running(rpc)
+        elif opts.instrument_cmd == 'timeinfo':
+            cmd_timeinfo(rpc)
         elif opts.instrument_cmd == 'activity':
             cmd_activity(rpc)
         elif opts.instrument_cmd == 'networking':

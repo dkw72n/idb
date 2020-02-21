@@ -12,7 +12,7 @@ from enum import Enum, IntEnum, IntFlag
 # md = CDLL(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
 if sys.platform == 'win32':
     libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
-    libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist++.dll"))
+    #libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist++.dll"))
     libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto-1_1-x64"))
     libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl-1_1-x64.dll"))
     libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.dll"))
@@ -81,6 +81,7 @@ EVP_CIPHER_CTX_free = libcrypto.EVP_CIPHER_CTX_free
 EVP_CIPHER_CTX_free.argtypes = [c_void_p]
 
 EVP_CIPHER_CTX_reset = libcrypto.EVP_CIPHER_CTX_reset
+EVP_CIPHER_CTX_reset.argtypes = [c_void_p]
 
 EVP_EncryptInit_ex = libcrypto.EVP_EncryptInit_ex
 EVP_EncryptInit_ex.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_void_p]
