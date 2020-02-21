@@ -63,13 +63,18 @@ plist_to_bin_free.restype = None
 
 # void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
 plist_to_xml = libplist.plist_to_xml
-plist_to_xml.argtypes = [c_void_p, POINTER(c_char_p), POINTER(c_int)]
+plist_to_xml.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
 plist_to_xml.restype = None
 
 # void plist_to_bin_free(char *plist_bin);
 plist_to_xml_free = libplist.plist_to_xml_free
-plist_to_xml_free.argtypes = [c_char_p]
+plist_to_xml_free.argtypes = [c_void_p]
 plist_to_xml_free.restype = None
+
+# void plist_from_memory(const char *plist_bin, uint32_t length, plist_t * plist);
+plist_from_memory = libplist.plist_from_memory
+plist_from_memory.argtypes = [c_void_p, c_uint32, POINTER(c_void_p)]
+plist_from_memory.restype = None
 
 # --------------------------------- Crypto ------------------------------------------
 c_ubyte_p = POINTER(c_ubyte)
