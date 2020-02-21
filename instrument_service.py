@@ -218,7 +218,13 @@ def cmd_running(rpc):
 def cmd_timeinfo(rpc):
     rpc.start()
     machTimeInfo = rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed
-    print("machTimeInfo:", machTimeInfo)
+    print("machTimeInfo:", {
+        "mach_absolute_time": machTimeInfo[0],
+        "mach_timebase_info": {
+            "number": machTimeInfo[1],
+            "demo": machTimeInfo[2]
+        }
+    })
     rpc.stop()
 
 def pre_call(rpc):
