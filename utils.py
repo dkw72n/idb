@@ -1,27 +1,32 @@
 
-from libimobiledevice import plist_to_xml, plist_to_bin, plist_free, plist_to_xml_free, plist_to_bin_free, plist_new_data, \
-    EVP_CIPHER_CTX_new, EVP_CIPHER_CTX_reset, EVP_CIPHER_CTX_free, \
-    EVP_EncryptInit_ex, EVP_EncryptUpdate, EVP_EncryptFinal_ex, \
-    EVP_DecryptInit_ex, EVP_DecryptUpdate, EVP_DecryptFinal_ex, \
-    EVP_aes_256_cbc
-
-from bpylist import archiver, bplist
 import plistlib
 from ctypes import *
+
+from bpylist import archiver, bplist
+from libimobiledevice import (EVP_aes_256_cbc, EVP_CIPHER_CTX_free,
+                              EVP_CIPHER_CTX_new, EVP_CIPHER_CTX_reset,
+                              EVP_DecryptFinal_ex, EVP_DecryptInit_ex,
+                              EVP_DecryptUpdate, EVP_EncryptFinal_ex,
+                              EVP_EncryptInit_ex, EVP_EncryptUpdate,
+                              plist_free, plist_from_memory, plist_new_data,
+                              plist_to_bin, plist_to_bin_free, plist_to_xml,
+                              plist_to_xml_free)
 
 
 def read_buffer_from_pointer(pointer, length):
     return bytes(cast(pointer, POINTER(c_char))[:length])
 
 def parse_plist_to_xml(bin_data:bytes):
-    plist_p = plist_new_data(bin_data, len(bin_data))
+    plist = c_void_p()
+    plist_from_memory(bin_data, len(bin_data), pointer(plist))
     plist_xml_p = c_void_p()
     length = c_int()
-    plist_to_xml(plist_p, pointer(plist_xml_p), pointer(length))
-    xml = plist_xml_p.content
+    plist_to_xml(plist, pointer(plist_xml_p), pointer(length))
+    xml = read_buffer_from_pointer(plist_xml_p, length.value)
     plist_to_xml_free(plist_xml_p)
-    plist_free(plist_p)
+    plist_free(plist)
     return xml
+
 
 
 def read_data_from_plist_ptr(plist_p):
@@ -102,5 +107,3 @@ def aes_256_cbc_decrypt(buf, key, iv=None):
         EVP_CIPHER_CTX_reset(ctx)
         EVP_CIPHER_CTX_free(ctx)
     return ret
-
-

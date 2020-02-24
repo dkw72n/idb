@@ -17,6 +17,7 @@ from dtxlib import DTXMessage, DTXMessageHeader,    \
     auxiliary_to_pyobject, pyobject_to_auxiliary,   \
     pyobject_to_selector, selector_to_pyobject
 from bpylist import archiver, bplist
+from utils import parse_plist_to_xml
 import struct
 
 allowed = '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890+-_=()*&^%$#@![]{}\\|;\':"<>?,./`~'
@@ -604,14 +605,22 @@ class InstrumentRPCResult:
     def __init__(self, dtx):
         self.raw = dtx
         if self.raw is None:
+            self.xml = None
             self.parsed = None
             self.plist = None
             return
         sel = dtx.get_selector()
         if not sel:
+            self.xml = ""
             self.plist = ""
             self.parsed = None
             return
+        try:
+            self.xml = parse_plist_to_xml(sel).decode('utf-8')
+            #print(self.xml)
+        except:
+            #traceback.print_exc()
+            self.xml = InstrumentRPCParseError()
         try:
             self.plist = bplist.parse(sel)
         except:
