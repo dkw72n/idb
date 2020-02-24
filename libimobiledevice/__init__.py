@@ -122,7 +122,7 @@ class IDeviceInfo(Structure):
     ]
 
 
-class IDeviceEventType(Enum):
+class IDeviceEventType(IntEnum):
     IDEVICE_DEVICE_ADD = 1
     IDEVICE_DEVICE_REMOVE = 2
     IDEVICE_DEVICE_PAIRED = 3
