@@ -77,8 +77,8 @@ class DeviceService(Service):
                 event_obj = event.contents
                 for listener in self._device_changed_listeners:
                     listener({
-                        "udid": event_obj.udid,
-                        "event": event_obj.event,
+                        "udid": event_obj.udid.decode("utf-8"),
+                        "type": event_obj.event,
                         "conn_type": event_obj.conn_type,
                     })
             user_data = c_void_p()
