@@ -87,6 +87,15 @@ plist_new_string = libplist.plist_new_string
 plist_new_string.argtypes = [c_char_p]
 plist_new_string.restype = c_void_p
 
+#void plist_array_append_item(plist_t node, plist_t item);
+plist_array_append_item =libplist.plist_array_append_item
+plist_array_append_item.argtypes = [c_void_p,c_void_p]
+plist_array_append_item.restype = None
+
+plist_new_array = libplist.plist_new_array
+plist_new_array.argtypes = None
+plist_new_array.restype = c_void_p
+
 # --------------------------------- Crypto ------------------------------------------
 c_ubyte_p = POINTER(c_ubyte)
 
@@ -293,6 +302,9 @@ lockdownd_set_value = libimobiledevice.lockdownd_set_value
 lockdownd_set_value.argtypes = [c_void_p, c_char_p, c_char_p, c_void_p]
 lockdownd_set_value.restype = c_int
 
+lockdownd_remove_value = libimobiledevice.lockdownd_remove_value
+lockdownd_remove_value.argtypes = [c_void_p, c_char_p, c_char_p]
+lockdownd_remove_value.restype = c_int
 
 # --------------------------------- Mobile Image Mounter -----------------------------------------
 
