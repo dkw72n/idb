@@ -36,11 +36,11 @@ class LockdownServiceTestCase(unittest.TestCase):
 
     def test_get_value(self):
         device = self._create_device()
-        client = self.lockdown_service.new_client(device)
+        client = self.lockdown_service.new_client(device, handshake=False)
         print("client", client)
         self.assertIsNotNone(client)
         #values = self.lockdown_service.get_value(client, "ProductVersion")
-        values = self.lockdown_service.get_value(client, None)
+        values, error = self.lockdown_service.get_value(client, None)
         print("values", type(values), values)
         # self.assertTrue("DeviceName" in values)
         # self.assertTrue("UniqueDeviceID" in values)

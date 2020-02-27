@@ -47,13 +47,9 @@ class LockdownService(Service):
         return ret == LockdowndError.LOCKDOWN_E_SUCCESS
 
     def get_value(self, client, key):
-        
-       
-        self.get_domain_Value(client,None,key)
+        return self.get_domain_Value(client, None, key)
 
-
-    def get_domain_Value(self,client,domain,key):
-
+    def get_domain_Value(self, client, domain ,key):
         """
         获取设备属性值
         :param client: lockdown client(C对象)
