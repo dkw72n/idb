@@ -76,6 +76,17 @@ plist_from_memory = libplist.plist_from_memory
 plist_from_memory.argtypes = [c_void_p, c_uint32, POINTER(c_void_p)]
 plist_from_memory.restype = None
 
+#plist_t plist_new_bool(uint8_t value);
+plist_new_bool = libplist.plist_new_bool
+plist_new_bool.argtypes = [c_uint]
+plist_new_bool.restype = c_void_p
+
+
+#plist_t plist_new_string(const char *val);
+plist_new_string = libplist.plist_new_string
+plist_new_string.argtypes = [c_char_p]
+plist_new_string.restype = c_void_p
+
 # --------------------------------- Crypto ------------------------------------------
 c_ubyte_p = POINTER(c_ubyte)
 
@@ -272,6 +283,11 @@ lockdownd_client_free.restype = c_int
 lockdownd_get_value = libimobiledevice.lockdownd_get_value
 lockdownd_get_value.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_void_p)]
 lockdownd_get_value.restype = c_int
+
+# lockdownd_error_t lockdownd_set_value(lockdownd_client_t client, const char *domain, const char *key, plist_t value);
+lockdownd_set_value = libimobiledevice.lockdownd_set_value
+lockdownd_set_value.argtypes = [c_void_p, c_char_p, c_char_p, c_void_p]
+lockdownd_set_value.restype = c_int
 
 
 # --------------------------------- Mobile Image Mounter -----------------------------------------

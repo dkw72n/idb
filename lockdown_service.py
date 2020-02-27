@@ -7,8 +7,8 @@ from ctypes import cdll, c_int, c_char, POINTER, c_char_p, c_byte, pointer, cast
 from service import Service
 # lockdown
 from libimobiledevice import LockdowndError
-from libimobiledevice import lockdownd_client_new, lockdownd_client_free, lockdownd_get_value
-from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free
+from libimobiledevice import lockdownd_client_new, lockdownd_client_free, lockdownd_get_value, lockdownd_set_value
+from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free,plist_new_string
 from bpylist import archiver, bplist
 import plistlib
 
@@ -44,30 +44,49 @@ class LockdownService(Service):
         return ret == LockdowndError.LOCKDOWN_E_SUCCESS
 
     def get_value(self, client, key):
+        
+       
+        self.get_domain_Value(client,None,key)
+
+
+    def get_domain_Value(self,client,domain,key):
+
         """
         获取设备属性值
         :param client: lockdown client(C对象)
+        :param domain: 获取域名
         :param key: 属性名称
         :return: 属性值
         """
         values = None
         p_list_p = c_void_p()
-        ret = lockdownd_get_value(client, None, key.encode("utf-8") if key else None, pointer(p_list_p))
+        ret = lockdownd_get_value(client, domain.encode("utf-8") if domain else None,  key.encode("utf-8") if key else None, pointer(p_list_p))
         if ret != LockdowndError.LOCKDOWN_E_SUCCESS:
             return None, "Can not new idevice"
 
         plist_bin_p = c_void_p()
         length = c_int()
         plist_to_bin(p_list_p, pointer(plist_bin_p), pointer(length))
-        #print("length", length.value)
+        print("length", length.value)
 
         buffer = read_buffer_from_pointer(plist_bin_p, length.value)
-        #print("buffer.length", len(buffer))
+        print("buffer.length", len(buffer))
         if buffer and len(buffer) > 0:
             values = plistlib.loads(buffer)
         plist_to_bin_free(plist_bin_p)
         plist_free(p_list_p)
         return values, None
+
+    def set_domain_Value(self,client,domain,key,plist_value):
+
+        
+        rel =lockdownd_set_value(client, domain.encode("utf-8") if domain else None, key.encode("utf-8") if key else None, plist_value)        
+        if rel != LockdowndError.LOCKDOWN_E_SUCCESS:
+            print("set_domain_Value error")
+
+        print("set_domain_Value rel:"+str(rel))
+       
+        return rel
 
 
 """
