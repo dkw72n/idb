@@ -275,6 +275,10 @@ lockdownd_client_new = libimobiledevice.lockdownd_client_new
 lockdownd_client_new.argtypes = [c_void_p, c_void_p, c_char_p]
 lockdownd_client_new.restype = c_int
 
+lockdownd_client_new_with_handshake = libimobiledevice.lockdownd_client_new_with_handshake
+lockdownd_client_new_with_handshake.argtypes = [c_void_p, c_void_p, c_char_p]
+lockdownd_client_new_with_handshake.restype = c_int
+
 lockdownd_client_free = libimobiledevice.lockdownd_client_free
 lockdownd_client_free.argtypes = [c_void_p]
 lockdownd_client_free.restype = c_int

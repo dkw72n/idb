@@ -7,7 +7,7 @@ from ctypes import cdll, c_int, c_char, POINTER, c_char_p, c_byte, pointer, cast
 from service import Service
 # lockdown
 from libimobiledevice import LockdowndError
-from libimobiledevice import lockdownd_client_new, lockdownd_client_free, lockdownd_get_value, lockdownd_set_value
+from libimobiledevice import lockdownd_client_new, lockdownd_client_new_with_handshake, lockdownd_client_free, lockdownd_get_value, lockdownd_set_value
 from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free,plist_new_string
 from bpylist import archiver, bplist
 import plistlib
@@ -22,14 +22,17 @@ class LockdownService(Service):
     Lockdown服务，负责获取设备属性
     """
 
-    def new_client(self, device):
+    def new_client(self, device, handshake = True):
         """
         创建lockdown client，用于调用lockdown服务的其他接口
         :param device: 由DeviceService创建的device对象（C对象）
         :return: lockdown client(C对象), 在使用完毕后请务必调用free_client来释放该对象内存
         """
         client = c_void_p()
-        ret = lockdownd_client_new(device, pointer(client), "ideviceinfo".encode("utf-8"))
+        if handshake:
+            ret = lockdownd_client_new_with_handshake(device, pointer(client), "ideviceinfo".encode("utf-8"))
+        else:
+            ret = lockdownd_client_new(device, pointer(client), "ideviceinfo".encode("utf-8"))
         if ret != LockdowndError.LOCKDOWN_E_SUCCESS:
             return None
         return client
