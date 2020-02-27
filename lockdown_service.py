@@ -66,10 +66,8 @@ class LockdownService(Service):
         plist_bin_p = c_void_p()
         length = c_int()
         plist_to_bin(p_list_p, pointer(plist_bin_p), pointer(length))
-        print("length", length.value)
 
         buffer = read_buffer_from_pointer(plist_bin_p, length.value)
-        print("buffer.length", len(buffer))
         if buffer and len(buffer) > 0:
             values = plistlib.loads(buffer)
         plist_to_bin_free(plist_bin_p)
