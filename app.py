@@ -25,9 +25,10 @@ def _get_device_or_die(udid = None):
     device = None
     if udid is not None:
         device = device_service.new_device(udid)
-    device_list = device_service.get_device_list()
-    if len(device_list) > 0:
-        device = device_service.new_device(device_list[0]['udid'])
+    else:
+        device_list = device_service.get_device_list()
+        if len(device_list) > 0:
+            device = device_service.new_device(device_list[0]['udid'])
     if device is None:
         print("No device attached")
         exit(-1)
