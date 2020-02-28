@@ -67,10 +67,6 @@ class LockdownServiceTestCase(unittest.TestCase):
         self.assertIsNotNone(client)
         #values = self.lockdown_service.get_value(client, "ProductVersion")
         values = self.lockdown_service.get_domain_Value(client,None, None)
-        #print("before values", type(values), values)
-        
-    
-        #self.lockdown_service.set_domain_Value(client,"com.apple.mobile.wireless_lockdown","EnableWifiConnections",plist_new_bool(0))
         self.lockdown_service.set_domain_Value(client,None,"DeviceName",plist_new_string("DeviceName".encode("utf-8")))
         values = self.lockdown_service.get_domain_Value(client,None, None)
         print("after values", type(values), values)

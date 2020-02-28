@@ -4,6 +4,8 @@ from threading import Thread, Event
 import time
 import traceback
 from service import Service
+
+
 from device_service import DeviceService
 from libimobiledevice import            \
     instrument_client_start_service,    \
@@ -19,6 +21,12 @@ from dtxlib import DTXMessage, DTXMessageHeader,    \
 from bpylist import archiver, bplist
 from utils import parse_plist_to_xml
 import struct
+
+try:
+    import pykp
+except:
+    pykp = None
+    pass
 
 allowed = '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890+-_=()*&^%$#@![]{}\\|;\':"<>?,./`~'
 
@@ -140,6 +148,7 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("wireless")
+
     instrument_cmd_parsers.add_parser("test")
 
 def cmd_channels(rpc):
@@ -350,20 +359,31 @@ def cmd_kill(rpc, pid):
     rpc.stop()
 
 def cmd_coreprofile(rpc):
+    decoder = None
+    print(pykp)
+    if pykp:
+        decoder = pykp.KPDecoder()
     def on_channel_message(res):
         #print(res.parsed)
         #print(res.plist)
-        print(res.raw.get_selector())
+        if type(res.plist) is InstrumentRPCParseError:
+            #print("load_byte_from_hexdump(\"\"\"")
+            #hexdump(res.raw.get_selector())
+            #print("\"\"\"),")
+            if decoder:
+                for code, time, arg1, arg2, arg3 in decoder.decode(res.raw.get_selector()):
+                    print(f"[{time}] code={code:08x} ({arg1}, {arg2}, {arg3})")
+    
     rpc.start()
     channel = "com.apple.instruments.server.services.coreprofilesessiontap"
     rpc.register_channel_callback(channel, on_channel_message)
-    print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
-    print("start", rpc.call(channel, "start").parsed)
+    rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg))
+    rpc.call(channel, "start")
     try:
         while 1: time.sleep(10)
     except:
         pass
-    print("stop", rpc.call(channel, "stop").parsed)
+    rpc.call(channel, "stop")
     rpc.stop()
 
 def cmd_power(rpc):
@@ -395,6 +415,7 @@ def cmd_power(rpc):
         pass
     print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
     rpc.stop()
+
 
 def cmd_wireless(rpc):
     def dropped_message(res):
