@@ -5,7 +5,6 @@ import time
 import traceback
 from service import Service
 
-from lockdown_service import LockdownService
 
 from device_service import DeviceService
 from libimobiledevice import            \
@@ -149,9 +148,6 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("wireless")
-    
-    p = instrument_cmd_parsers.add_parser("enableWireless")
-    p.add_argument("enable", type=int)
 
     instrument_cmd_parsers.add_parser("test")
 
@@ -420,14 +416,6 @@ def cmd_power(rpc):
     print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
     rpc.stop()
 
-def cmd_enableWireless(device,enable):
-    
-    lockdown_service = LockdownService()
-    client = lockdown_service.new_client(device)
-    lockdown_service.enable_wireless(client,enable,"A3F0A50F-96BC-54E9-AFED-08960FCFB75D","8E32E7B0-8D6D-4911-BF4E-D4370BF13871")
-
-    lockdown_service.free_client(client)
-
 
 def cmd_wireless(rpc):
     def dropped_message(res):
@@ -533,8 +521,6 @@ def instrument_main(device, opts):
             cmd_power(rpc)
         elif opts.instrument_cmd == 'wireless':
             cmd_wireless(rpc)
-        elif opts.instrument_cmd == 'enableWireless':
-            cmd_enableWireless(device,opts.enable)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)

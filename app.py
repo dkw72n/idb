@@ -16,6 +16,8 @@ from spring_board_service import SpringBoardService
 from image_mounter_service import ImageMounterService
 from syslog_relay_service import SyslogRelayService
 
+from lockdown_service import LockdownService
+
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 device_service = DeviceService()
@@ -174,6 +176,14 @@ def print_icon(udid, bundle_id, output):
         print("Can not get icon of app(bundleId=%s)" % bundle_id)
     spring_board_service.free_client(spring_board_client)
     device_service.free_device(device)
+
+
+def enable_Wireless(udid,enable = 1):
+    device = _get_device_or_die(udid)
+    lockdown_service = LockdownService()
+    client = lockdown_service.new_client(device)
+    lockdown_service.enable_wireless(client,int(enable),"A3F0A50F-96BC-54E9-AFED-08960FCFB75D","8E32E7B0-8D6D-4911-BF4E-D4370BF13871")
+    lockdown_service.free_client(client)
 
 
 def print_screenshot(udid, output = None):
@@ -387,6 +397,8 @@ def main():
     cmd_parser.add_parser("applications")
     cmd_parser.add_parser("deviceinfo")
     cmd_parser.add_parser("syslog")
+
+
     # list
     list_parser = cmd_parser.add_parser("ls")
     list_parser.add_argument("device_directory")
@@ -425,6 +437,8 @@ def main():
     instrument_parser = cmd_parser.add_parser("instrument")
     setup_instrument_parser(instrument_parser)
 
+    cmd_wireless = cmd_parser.add_parser("enableWireless")
+    cmd_wireless.add_argument("-e", "--enable", required=False)
 
     argparser.add_argument("-u", "--udid", help="udid")
 
@@ -459,6 +473,9 @@ def main():
         pull_file(args.udid, args.remote_file)
     elif args.command == 'push':
         push_file(args.udid, args.local_file, args.device_directory)
+    elif args.command == 'enableWireless':
+        enable_Wireless(args.udid, args.enable)
+    
     else:
         argparser.print_usage()
 
