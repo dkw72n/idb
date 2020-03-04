@@ -137,6 +137,8 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
     instrument_cmd_parsers.add_parser("timeinfo")
+    p = instrument_cmd_parsers.add_parser("execname")
+    p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("activity")
     instrument_cmd_parsers.add_parser("networking")
     p = instrument_cmd_parsers.add_parser("energy")
@@ -235,6 +237,12 @@ def cmd_timeinfo(rpc):
             "denom": machTimeInfo[2]
         }
     })
+    rpc.stop()
+
+def cmd_execname(rpc, pid):
+    rpc.start()
+    execname = rpc.call("com.apple.instruments.server.services.deviceinfo", "execnameForPid:", pid).parsed
+    print(execname)
     rpc.stop()
 
 def pre_call(rpc):
@@ -505,6 +513,8 @@ def instrument_main(device, opts):
             cmd_running(rpc)
         elif opts.instrument_cmd == 'timeinfo':
             cmd_timeinfo(rpc)
+        elif opts.instrument_cmd == 'execname':
+            cmd_execname(rpc, opts.pid)
         elif opts.instrument_cmd == 'activity':
             cmd_activity(rpc)
         elif opts.instrument_cmd == 'networking':
