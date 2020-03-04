@@ -814,6 +814,7 @@ class InstrumentRPC:
         self._next_identifier += 1
         dtx.channel_code = channel_id
         dtx.set_selector(pyobject_to_selector(selector))
+        wait_key = (dtx.channel_code, dtx.identifier)
         for aux in auxiliaries:
             if type(aux) is InstrumentRPCRawArg:
                 dtx.add_auxiliary(aux.data)
@@ -822,7 +823,7 @@ class InstrumentRPC:
         if sync:
             dtx.expects_reply = True
             param = {"result": None, "event": Event()}
-            self._sync_waits[dtx.identifier] = param
+            self._sync_waits[wait_key] = param
         #print("perfcat => ios")
         #hexdump(dtx.to_bytes())
         self._is.send_dtx(self._cli, dtx)
@@ -831,7 +832,7 @@ class InstrumentRPC:
             ret = param['result']
             #print("ios => perfcat")
             #hexdump(ret.to_bytes())
-            self._sync_waits.pop(dtx.identifier)
+            self._sync_waits.pop(wait_key)
             return ret
     
     def _receiver(self):
@@ -847,8 +848,9 @@ class InstrumentRPC:
                 continue
             # print("recv:", dtx)
             self._next_identifier = max(self._next_identifier, dtx.identifier + 1)
-            if dtx.identifier in self._sync_waits:
-                param = self._sync_waits[dtx.identifier]
+            wait_key = (dtx.channel_code, dtx.identifier)
+            if wait_key in self._sync_waits:
+                param = self._sync_waits[wait_key]
                 param['result'] = dtx
                 param['event'].set()
             elif 2**32 - dtx.channel_code in self._channel_callbacks:
@@ -876,9 +878,9 @@ class InstrumentRPC:
                             traceback.print_exc()
                     #print("dropped", selector, dtx, dtx.identifier, dtx.channel_code)
         self._receiver_exiting = True # to block incoming calls
-        for identifier in self._sync_waits:
-            self._sync_waits[identifier]['result'] = InstrumentServiceConnectionLost
-            self._sync_waits[identifier]['event'].set()
+        for wait_key in self._sync_waits:
+            self._sync_waits[wait_key]['result'] = InstrumentServiceConnectionLost
+            self._sync_waits[wait_key]['event'].set()
         
                         
                 
