@@ -147,6 +147,9 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("kill")
     p.add_argument("pid", type=float)
+    p = instrument_cmd_parsers.add_parser("monitor")
+    p.add_argument("pid", type=float)
+    p.add_argument("--network", default=True, action='store_true')
     instrument_cmd_parsers.add_parser("coreprofile")
     instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("wireless")
@@ -211,6 +214,37 @@ def cmd_graphics(rpc):
     #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 0.0).parsed)
     try:
         while 1: time.sleep(10)
+    except:
+        pass
+    print("stop", rpc.call("com.apple.instruments.server.services.graphics.opengl", "stopSampling").parsed)
+    rpc.stop()
+
+def cmd_monitor(rpc, pid, network_stat = True):
+    done = Event()
+    def _notifyOfPublishedCapabilities(res):
+        done.set()
+    def dropped_message(res):
+        print("[DROP]", res.parsed, res.raw.channel_code)
+    def on_graphics_message(res):
+        print("[GRAPHICS]", res.parsed)
+    rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.start()
+    done.wait()
+    rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
+    print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
+    print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
+    #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 0.0).parsed)
+
+    if network_stat:
+        print("start", rpc.call("com.apple.xcode.debug-gauge-data-providers.NetworkStatistics", "startSamplingForPIDs:", {pid}).parsed)
+    try:
+        while 1:
+            if network_stat:
+                attr = {}
+                ret = rpc.call("com.apple.xcode.debug-gauge-data-providers.NetworkStatistics", "sampleAttributes:forPIDs:", attr, {pid})
+                print("[NETSTAT]", ret.parsed)
+            time.sleep(1)
     except:
         pass
     print("stop", rpc.call("com.apple.instruments.server.services.graphics.opengl", "stopSampling").parsed)
@@ -515,6 +549,8 @@ def instrument_main(device, opts):
             cmd_timeinfo(rpc)
         elif opts.instrument_cmd == 'execname':
             cmd_execname(rpc, opts.pid)
+        elif opts.instrument_cmd == 'monitor':
+            cmd_monitor(rpc, opts.pid, opts.network)
         elif opts.instrument_cmd == 'activity':
             cmd_activity(rpc)
         elif opts.instrument_cmd == 'networking':
