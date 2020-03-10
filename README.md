@@ -236,7 +236,7 @@ $ idb instrument sysmontap
     'StartMachAbsTime': 3595491365204
 }, {
     'Processes': {
-        0: [55934222336, 0.02943223109141613, 165363748, 69663619, 192643072, 1206353920, 335495168, 0, None, 2096201728],
+        0: [55934222336, 0.02943223109141613, 165363748, 69663619, 192643072, 1206353920, 335495168, 0, None, 2096201728],  // 'ProcessesAttributes': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead'],
         144: [4365975552, 0.0, 8395, 301, 2458024, 1900544, 2310144, 144, 0.0, 17207296],
         49: [4393910272, 0.0, 105903, 30000, 3998160, 2375680, 3833856, 49, 0.0, 47230976],
         3018: [4325965824, 0.0, 113, 2, 966960, 655360, 868352, 3018, 0.0, 966656],
@@ -249,6 +249,18 @@ $ idb instrument sysmontap
     'EndMachAbsTime': 3595520484394,
     'StartMachAbsTime': 3595494138986
 }]
+```
+
+
+```
+enabledCPUs = data.EnabledCPUs
+if enabledCPUs == 0:
+    enabledCPUs = data.CPUCount
+totalCPUUsage = data.SystemCPUUsage.CPU_TottatlLoad / enabledCPUs
+
+
+
+
 ```
 
 
