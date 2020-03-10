@@ -222,7 +222,7 @@ def rotate_image(data, orientation):
     else:
         image = image # portrait, do nothing
     bytes_io = io.BytesIO()
-    image.save(bytes_io, format="JPEG")
+    image.save(bytes_io, format="PNG")
     return bytes_io.getvalue()
 
 def print_screenshot(udid, output = None):
