@@ -1,15 +1,21 @@
 import argparse
 import json
 import os
+import io
 import sys
 import time
 import datetime
+
+try:
+    from PIL import Image
+except:
+    Image = None
 
 from afc_service import AfcService
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
 from lockdown_service import LockdownService
-from libimobiledevice import IDeviceConnectionType
+from libimobiledevice import IDeviceConnectionType, SbservicesInterfaceOrientation
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
 from screenshotr_service import ScreenshotrService
 from spring_board_service import SpringBoardService
@@ -186,23 +192,63 @@ def enable_Wireless(udid,enable = 1):
     lockdown_service.enable_wireless(client,int(enable),"A3F0A50F-96BC-54E9-AFED-08960FCFB75D","8E32E7B0-8D6D-4911-BF4E-D4370BF13871")
     lockdown_service.free_client(client)
 
+def orientation_to_str(orientation):
+    if orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_PORTRAIT_UPSIDE_DOWN:
+        return "PORTRAIT_UPSIDE_DOWN"
+    elif orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_LEFT:
+        return "LANDSCAPE_LEFT"
+    elif orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_RIGHT:
+        return "LANDSCAPE_RIGHT"
+    elif orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_PORTRAIT:
+        return "PORTRAIT"
+    else:
+        return "UNKNOWN"
+
+def rotate_image(data, orientation):
+    if Image is None:
+        print("[WARNING] PIL is not installed, can not auto rotate image, orientation=%s!" % orientation_to_str(orientation))
+        return data
+
+    bytes_io = io.BytesIO(data)
+    image = Image.open(bytes_io)
+    #print("image size=%s orientation=%s" % (str(image.size), str(orientation)))
+
+    if orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_PORTRAIT_UPSIDE_DOWN:
+        image = image.transpose(Image.ROTATE_180)
+    elif orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_LEFT:
+        image = image.transpose(Image.ROTATE_270)
+    elif orientation == SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_RIGHT:
+        image = image.transpose(Image.ROTATE_90)
+    else:
+        image = image # portrait, do nothing
+    bytes_io = io.BytesIO()
+    image.save(bytes_io, format="JPEG")
+    return bytes_io.getvalue()
 
 def print_screenshot(udid, output = None):
     device = _get_device_or_die(udid)
 
+    # get orientation of device
+    spring_board_service = SpringBoardService()
+    spring_board_client = spring_board_service.new_client(device)
+    orientation = spring_board_service.get_interface_orientation(spring_board_client)
+    spring_board_service.free_client(spring_board_client)
+
+    # take screenshot
     screenshotr_service = ScreenshotrService()
     screenshotr_client = screenshotr_service.new_client(device)
-
     imgdata, file_ext = screenshotr_service.take_screenshot(screenshotr_client)
     if imgdata:
         if output is None:
             output = os.path.join(ROOT_DIR, "screenshot_%s%s" % (datetime.datetime.now().strftime("%Y%m%d_%H%M%S"), file_ext))
+        imgdata = rotate_image(imgdata, orientation)
         with open(output, "wb") as fp:
             fp.write(imgdata)
-        print("Save screenshot image file at %s" % (os.path.abspath(output)))
+        print("Save screenshot image file at %s(orientation: %s)" % (os.path.abspath(output), orientation_to_str(orientation)))
     else:
         print("Error: Can not take screenshot")
     screenshotr_service.free_client(screenshotr_client)
+
     device_service.free_device(device)
 
 def print_image_lookup(udid, image_type = None):

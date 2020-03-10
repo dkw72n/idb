@@ -546,6 +546,13 @@ class SbservicesError(IntEnum):
     SBSERVICES_E_CONN_FAILED = -3
     SBSERVICES_E_UNKNOWN_ERROR = -256
 
+class SbservicesInterfaceOrientation(IntEnum):
+    SBSERVICES_INTERFACE_ORIENTATION_UNKNOWN = 0,
+    SBSERVICES_INTERFACE_ORIENTATION_PORTRAIT = 1
+    SBSERVICES_INTERFACE_ORIENTATION_PORTRAIT_UPSIDE_DOWN = 2
+    SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_RIGHT = 3
+    SBSERVICES_INTERFACE_ORIENTATION_LANDSCAPE_LEFT = 4
+
 # sbservices_error_t sbservices_client_start_service(idevice_t device, sbservices_client_t* client, const char* label);
 sbservices_client_start_service = libimobiledevice.sbservices_client_start_service
 sbservices_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
@@ -560,6 +567,11 @@ sbservices_client_free.restype = c_int
 sbservices_get_icon_pngdata = libimobiledevice.sbservices_get_icon_pngdata
 sbservices_get_icon_pngdata.argtypes = [c_void_p, c_char_p, POINTER(c_void_p), POINTER(c_uint64)]
 sbservices_get_icon_pngdata.restype = c_int
+
+# sbservices_error_t sbservices_get_interface_orientation(sbservices_client_t client, sbservices_interface_orientation_t* interface_orientation);
+sbservices_get_interface_orientation = libimobiledevice.sbservices_get_interface_orientation
+sbservices_get_interface_orientation.argtypes = [c_void_p, POINTER(c_uint)]
+sbservices_get_interface_orientation.restype = c_int
 
 # void free(void*)
 libimobiledevice_free = libimobiledevice.libimobiledevice_free

@@ -6,8 +6,8 @@ from ctypes import cdll, c_int, c_char, POINTER, c_char_p, c_byte, pointer, cast
 
 from service import Service
 # lockdown
-from libimobiledevice import SbservicesError
-from libimobiledevice import sbservices_client_start_service, sbservices_client_free, sbservices_get_icon_pngdata, libimobiledevice_free
+from libimobiledevice import SbservicesError, SbservicesInterfaceOrientation
+from libimobiledevice import sbservices_client_start_service, sbservices_client_free, sbservices_get_icon_pngdata, sbservices_get_interface_orientation, libimobiledevice_free
 from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free
 import plistlib
 
@@ -61,3 +61,12 @@ class SpringBoardService(Service):
 
         libimobiledevice_free(pngdata_p)
         return buffer
+
+    def get_interface_orientation(self, client):
+        interface_orientation = c_uint()
+
+        ret = sbservices_get_interface_orientation(client, pointer(interface_orientation))
+        if ret != SbservicesError.SBSERVICES_E_SUCCESS:
+            return SbservicesInterfaceOrientation.SBSERVICES_INTERFACE_ORIENTATION_UNKNOWN
+        return int(interface_orientation.value)
+
