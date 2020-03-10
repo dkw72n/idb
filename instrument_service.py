@@ -227,6 +227,21 @@ def cmd_monitor(rpc, pid, network_stat = True):
         print("[DROP]", res.parsed, res.raw.channel_code)
     def on_graphics_message(res):
         print("[GRAPHICS]", res.parsed)
+    decoder = None
+    print(pykp)
+    if pykp:
+        decoder = pykp.KPDecoder()
+    def on_channel_message(res):
+        #print(res.parsed)
+        #print(res.plist)
+        if type(res.plist) is InstrumentRPCParseError:
+            #print("load_byte_from_hexdump(\"\"\"")
+            #hexdump(res.raw.get_selector())
+            #print("\"\"\"),")
+            if decoder:
+                for code, time, arg1, arg2, arg3 in decoder.decode(res.raw.get_selector()):
+                    if code & 0xff000000 == 0x31000000:
+                        print(f"[COREPROFILE][{time}] code={code:08x} ({arg1}, {arg2}, {arg3})")
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
@@ -236,6 +251,10 @@ def cmd_monitor(rpc, pid, network_stat = True):
     print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
     #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 0.0).parsed)
 
+    ch_cp = "com.apple.instruments.server.services.coreprofilesessiontap"
+    rpc.register_channel_callback(ch_cp, on_channel_message)
+    rpc.call(ch_cp, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg))
+    rpc.call(ch_cp, "start")
     if network_stat:
         print("start", rpc.call("com.apple.xcode.debug-gauge-data-providers.NetworkStatistics", "startSamplingForPIDs:", {pid}).parsed)
     try:
@@ -248,7 +267,9 @@ def cmd_monitor(rpc, pid, network_stat = True):
     except:
         pass
     print("stop", rpc.call("com.apple.instruments.server.services.graphics.opengl", "stopSampling").parsed)
+    print("stop", rpc.call(ch_cp, "stop").parsed)
     rpc.stop()
+    time.sleep(1)
 
 def cmd_running(rpc):
     rpc.start()
@@ -353,6 +374,8 @@ def cmd_networking(rpc):
 
 
 def cmd_activity(rpc):
+    def on_callback_message(res):
+        print("[DROP]", res.parsed, res.raw.channel_code)
 
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.activity", on_callback_message)
@@ -576,21 +599,82 @@ def instrument_main(device, opts):
     device_service.free_device(device)
     return
 
+class DTXFragment:
+
+    def __init__(self, buf):
+        self._header = DTXMessageHeader.from_buffer_copy(buf[:sizeof(DTXMessageHeader)])
+        self._bufs = [buf]
+        self.current_fragment_id = 0 if self._header.fragmentId == 0 else -1
+
+    def append(self, buf):
+        assert self.current_fragment_id >= 0, "attempt to append to an broken fragment"
+        assert len(buf) >= sizeof(DTXMessageHeader)
+        subheader = DTXMessageHeader.from_buffer_copy(buf[:sizeof(DTXMessageHeader)])
+        assert subheader.fragmentCount == self._header.fragmentCount
+        assert subheader.fragmentId == self.current_fragment_id + 1
+        self.current_fragment_id = self.current_fragment_id + 1
+        self._bufs.append(buf)
+
+    @property
+    def message(self):
+        assert self.completed, "should only be called when completed"
+        return DTXMessage.from_bytes(b''.join(self._bufs))
+
+    @property
+    def completed(self):
+        return self.current_fragment_id + 1 == self._header.fragmentCount
+    
+    @property
+    def key(self):
+        return (self._header.channelCode, self._header.identifier)
+
+    @property
+    def header(self):
+        return self._header.fragmentId == 0
+
 class DTXClientMixin:
 
     def send_dtx(self, client, dtx):
         buffer = dtx.to_bytes()
         return self.send_all(client, buffer)
 
-    def recv_dtx(self, client, timeout=-1):
+    def recv_dtx_fragment(self, client, timeout=-1):
         header_buffer = self.recv_all(client, sizeof(DTXMessageHeader), timeout=timeout)
         if not header_buffer:
             return None
         header = DTXMessageHeader.from_buffer_copy(header_buffer)
-        body_buffer = self.recv_all(client, header.length + (header.fragmentCount - 1) * sizeof(DTXMessageHeader), timeout=timeout)
+        if header.fragmentCount > 1 and header.fragmentId == 0:
+            return header_buffer
+        body_buffer = self.recv_all(client, header.length, timeout=timeout)
         if not body_buffer:
             return None
-        return DTXMessage.from_bytes(header_buffer + body_buffer)
+        return header_buffer + body_buffer
+
+    def recv_dtx(self, client, timeout=-1):
+        self._setup_manager()
+        while 1:
+            buf = self.recv_dtx_fragment(client, timeout)
+            if not buf:
+                return None
+            fragment = DTXFragment(buf)
+            if fragment.completed:
+                return fragment.message
+            key = (client.value, fragment.key)
+            if fragment.header:
+                self._dtx_demux_manager[key] = fragment
+            else:
+                assert key in self._dtx_demux_manager
+                self._dtx_demux_manager[key].append(buf)
+                if self._dtx_demux_manager[key].completed:
+                    ret = self._dtx_demux_manager[key].message
+                    self._dtx_demux_manager.pop(key)
+                    return ret
+
+    def _setup_manager(self):
+        if hasattr(self, "_dtx_demux_manager"):
+            return
+        self._dtx_demux_manager = {}
+
 
 class DTXUSBTransport:
     """
@@ -826,7 +910,7 @@ class InstrumentRPC:
             self._sync_waits[wait_key] = param
         #print("perfcat => ios")
         #hexdump(dtx.to_bytes())
-        self._is.send_dtx(self._cli, dtx)
+        self._is.send_dtx(self._cli, dtx) # TODO: protect this line with mutex
         if sync:
             param['event'].wait()
             ret = param['result']
