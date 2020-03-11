@@ -139,7 +139,8 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("timeinfo")
     p = instrument_cmd_parsers.add_parser("execname")
     p.add_argument("pid", type=float)
-    instrument_cmd_parsers.add_parser("activity")
+    p = instrument_cmd_parsers.add_parser("activity")
+    p.add_argument("pid", type=float)
     instrument_cmd_parsers.add_parser("networking")
     p = instrument_cmd_parsers.add_parser("energy")
     p.add_argument("pid", type=float)
@@ -373,14 +374,14 @@ def cmd_networking(rpc):
     rpc.stop()
 
 
-def cmd_activity(rpc):
+def cmd_activity(rpc, pid):
     def on_callback_message(res):
         print("[DROP]", res.parsed, res.raw.channel_code)
 
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.activity", on_callback_message)
     
-    print("start", rpc.call("com.apple.instruments.server.services.activity", "startSamplingWithPid:", "$null").parsed)
+    print("start", rpc.call("com.apple.instruments.server.services.activity", "startSamplingWithPid:", pid).parsed)
     
     try:
         while 1: time.sleep(10)
@@ -575,7 +576,7 @@ def instrument_main(device, opts):
         elif opts.instrument_cmd == 'monitor':
             cmd_monitor(rpc, opts.pid, opts.network)
         elif opts.instrument_cmd == 'activity':
-            cmd_activity(rpc)
+            cmd_activity(rpc, opts.pid)
         elif opts.instrument_cmd == 'networking':
             cmd_networking(rpc)
         elif opts.instrument_cmd == 'energy':
