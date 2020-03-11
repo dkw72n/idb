@@ -266,7 +266,87 @@ totalCPUUsage = data.SystemCPUUsage.CPU_TottatlLoad / enabledCPUs
 
 ### activity(IOS < 11.0)
 
-TODO
+
+```
+$ idb instrument activity
+{
+   "CPUNiceLoad":0.0,
+   "NetBytesIn":19742719,
+   "DiskBytesWritten":134885376,
+   "VMPageInBytes":789274624,
+   "TotalThreads":507,
+   "TotalVMSize":102345474048,
+   "PhysicalMemoryActive":392609792,
+   "DiskWriteOpsPerSecond":0,
+   "DiskWriteOps":6297,
+   "NetBytesInPerSecond":0,
+   "PhysicalMemoryUsed":786100224,
+   "DiskReadOpsPerSecond":0,
+   "DiskBytesReadPerSecond":0,
+   "NetBytesOut":18399168,
+   "PhysicalMemoryFree":28282880,
+   "CPUUserLoad":65.90909004211426,
+   "XRActivityClientMachAbsoluteTime":14443144570,                  // absTime
+   "DiskBytesWrittenPerSecond":0,
+   "NetPacketsOut":4527,
+   "DiskBytesRead":782565376,
+   "PhysicalMemoryWired":189034496,
+   "NetPacketsIn":8936,
+   "TotalProcesses":0,
+   "IndividualCPULoad":[
+      {
+         "TotalLoad":"63.636364",
+         "SystemLoad":"0.000000",
+         "NiceLoad":"0.000000",
+         "UserLoad":"63.636364"
+      },
+      {
+         "TotalLoad":"68.181818",
+         "SystemLoad":"0.000000",
+         "NiceLoad":"0.000000",
+         "UserLoad":"68.181818"
+      }
+   ],
+   "CPUTotalLoad":65.90909004211426,
+   "Processes":[
+      {
+         "CPUUsage":0.21836340937464532,                // cpuUsage;  appCPUUsage = cpuUsage / cpuNum; totalCPUUsage = SUM(processCPUUsage)
+         "UnixSyscalls":91249,
+         "Private":4284416,
+         "VPrivate":27578368,
+         "Faults":4771,
+         "TotalMicroSeconds":895321,
+         "MachSyscalls":81338,
+         "Ports":1106,
+         "MessagesReceived":15268,
+         "ContextSwitches":23485,
+         "PGID":1,
+         "UID":0,
+         "Threads":3,
+         "TotalSeconds":4,
+         "ResidentSize":6176768,                        // realMemory(b)
+         "PageIns":823,
+         "Architecture":12,
+         "PID":1,                                       // pid
+         "VirtualSize":664883200,                       // virtualMemory(b)
+         "Command":"launchd",
+         "PPID":0,
+         "MessagesSent":43868,
+         "Shared":1126400
+      }
+   ],
+   "PhysicalMemoryInactive":204455936,
+   "NetPacketsOutPerSecond":0,
+   "VMSwapUsed":0,
+   "DiskReadOps":27249,
+   "NetBytesOutPerSecond":0,
+   "CPUSystemLoad":0.0,
+   "NetPacketsInPerSecond":0,
+   "VMPageOutBytes":139264
+}
+```
+
+
 
 ### networking(Wifi mode)
 

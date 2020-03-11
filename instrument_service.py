@@ -376,7 +376,7 @@ def cmd_networking(rpc):
 
 def cmd_activity(rpc, pid):
     def on_callback_message(res):
-        print("[DROP]", res.parsed, res.raw.channel_code)
+        print("[ACTIVITY]", res.parsed)
 
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.activity", on_callback_message)

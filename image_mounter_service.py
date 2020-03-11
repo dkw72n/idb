@@ -50,7 +50,7 @@ class ImageMounterService(Service):
 
         data = read_data_from_plist_ptr(plist_p)
         plist_free(plist_p)
-        if not data:
+        if data is None:
             return False, "Can not parse plist result"
 
         if "Error" in data:
