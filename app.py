@@ -6,11 +6,6 @@ import sys
 import time
 import datetime
 
-try:
-    from PIL import Image
-except:
-    Image = None
-
 from afc_service import AfcService
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
@@ -21,8 +16,12 @@ from screenshotr_service import ScreenshotrService
 from spring_board_service import SpringBoardService
 from image_mounter_service import ImageMounterService
 from syslog_relay_service import SyslogRelayService
-
 from lockdown_service import LockdownService
+
+try:
+    from PIL import Image
+except:
+    Image = None
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
