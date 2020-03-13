@@ -11,25 +11,20 @@ from enum import Enum, IntEnum, IntFlag
 # md = cdll.LoadLibrary( "libimobiledevice.dll")
 # md = CDLL(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
 if sys.platform == 'win32':
-    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
-    #libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist++.dll"))
-    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto-1_1-x64"))
-    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl-1_1-x64.dll"))
-    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.dll"))
-    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
-elif sys.platform.startswith('linux'):
-    #libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.so.3.2.0"))
     libplist_plus = None
-    libssl = None #cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libssl.so.1.1"))
-    #libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd.so.6.0.0"))
+    libssl = None
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
+    libcrypto = libimobiledevice
+    libusbmuxd = libimobiledevice
+elif sys.platform.startswith('linux'):
+    libplist_plus = None
+    libssl = None
     libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.so.6.0.0"))
-    libcrypto = libimobiledevice # cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libcrypto.so.1.1"))
+    libcrypto = libimobiledevice
     libplist = libimobiledevice
     libusbmuxd = libimobiledevice
-   
-else :
-    # mac os 
-    
+else : # mac os
     libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libcrypto.dylib"))
     libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist++.dylib"))
     libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libssl.dylib"))
@@ -97,6 +92,8 @@ plist_new_array.argtypes = None
 plist_new_array.restype = c_void_p
 
 # --------------------------------- Crypto ------------------------------------------
+
+
 c_ubyte_p = POINTER(c_ubyte)
 
 EVP_CIPHER_CTX_new = libcrypto.EVP_CIPHER_CTX_new
@@ -120,14 +117,6 @@ EVP_EncryptFinal_ex.argtypes = [c_void_p, c_void_p, POINTER(c_int)]
 EVP_DecryptInit_ex = libcrypto.EVP_DecryptInit_ex
 EVP_DecryptInit_ex.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_void_p]
 
-EVP_DecryptUpdate = libcrypto.EVP_DecryptUpdate
-EVP_DecryptUpdate.argtypes = [c_void_p, c_void_p, POINTER(c_int), c_void_p, c_int]
-
-EVP_DecryptFinal_ex = libcrypto.EVP_DecryptFinal_ex
-EVP_DecryptFinal_ex.argtypes = [c_void_p, c_void_p, POINTER(c_int)]
-
-EVP_aes_256_cbc = libcrypto.EVP_aes_256_cbc
-EVP_aes_256_cbc.restype = c_void_p
 
 # --------------------------------- IDevice -----------------------------------------
 
