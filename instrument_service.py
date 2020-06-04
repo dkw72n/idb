@@ -622,22 +622,18 @@ def start_wireless_mode(device): # returns (ret, name, preshared_key)
 
 def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
     expecting_name = f"perfcat_{name}._19900724._tcp.local."
-    print(f"expecting {expecting_name}")
+    print(f"[WIRELESS] expecting {expecting_name}")
     found = threading.Event()
-    ThreadTable = {}
     ctx = {}
 
     class MyListener:
 
         def remove_service(self, zeroconf, type, name):
-            print("Service %s removed" % (name,))
-            print(ThreadTable[name])
-            ThreadTable[name].join()
-            print("joined")
+            print("[Service] `%s` removed" % (name,))
             
         def add_service(self, zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            print(f"Service `{name}` added, service info: `{info}`")
+            print(f"[Service] `{name}` added, service info: `{info}`")
             if name == expecting_name:
                 ctx['addresses'] = list(map(socket.inet_ntoa, info.addresses))
                 ctx['port'] = info.port
@@ -659,103 +655,31 @@ def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
 
     return ctx['addresses'], ctx['port']
 
-def get_wireless_rpc(addresses, port, psk):
-    done = threading.Event()
-
-    def dropped_message(res):
-        print("[DROP]", res.plist, res.raw.channel_code)
-        pass
-
-    def challenge(res):
-        print("challenge:")
-        bb = auxiliary_to_pyobject(res.raw.get_auxiliary_at(0))
-        hexdump(bb)
-        key = psk.encode('utf-8')
-        bb = bytes(bb)
-        d = aes_256_cbc_decrypt(bb, key)
-        done.set()
-        out = aes_256_cbc_encrypt(d[:-1] + b'ack\x00', key)
-        hexdump(out)
-        return out
-
+def init_wireless_rpc(addresses, port, psk):
     for addr in addresses:
         rpc = InstrumentRPC()
         inited = rpc.init(DTXSockTransport, (addr, int(port), psk))
         if inited:
-            """
-            rpc.register_unhandled_callback(dropped_message)
-            rpc.register_callback("challenge:", challenge)
-            rpc.start()
-            try:
-                done.wait(10)
-            except:
-                rpc.close()
-                rpc = None
-            """
             return rpc
     return None
 
 
-def instrument_main(device, opts):
-    device_service = DeviceService()
+def get_usb_rpc(device):
     rpc = InstrumentRPC()
-    
-
     if not rpc.init(DTXUSBTransport, device):
-        print("failed to init rpc")
-        device_service.free_device(device)
-        return
-    
-    if opts.wireless:
-        print("NOTE: we are in wireless mode")
-        ret, name, psk = start_wireless_mode(device)
-        print(f"ret = {ret}, psk = {psk}")
-        addresses, port = wait_for_wireless_device(name, 30)
-        print(f"addrs = {addresses}, port = {port}")
-        rpc2 = get_wireless_rpc(addresses, port, psk)
-        print(f"rpc = {rpc2}")
-        if rpc2:
-            rpc.deinit()
-            rpc = rpc2
-    try:
-        if opts.instrument_cmd == 'channels':
-            cmd_channels(rpc)
-        elif opts.instrument_cmd == 'sysmontap':
-            cmd_sysmontap(rpc)
-        elif opts.instrument_cmd == 'graphics':
-            cmd_graphics(rpc)
-        elif opts.instrument_cmd == 'running':
-            cmd_running(rpc)
-        elif opts.instrument_cmd == 'timeinfo':
-            cmd_timeinfo(rpc)
-        elif opts.instrument_cmd == 'execname':
-            cmd_execname(rpc, opts.pid)
-        elif opts.instrument_cmd == 'monitor':
-            cmd_monitor(rpc, opts.pid, opts.network)
-        elif opts.instrument_cmd == 'activity':
-            cmd_activity(rpc, opts.pid)
-        elif opts.instrument_cmd == 'networking':
-            cmd_networking(rpc)
-        elif opts.instrument_cmd == 'energy':
-            cmd_energy(rpc, opts.pid)
-        elif opts.instrument_cmd == 'netstat':
-            cmd_netstat(rpc, opts.pid)
-        elif opts.instrument_cmd == 'kill':
-            cmd_kill(rpc, opts.pid)
-        elif opts.instrument_cmd == 'coreprofile':
-            cmd_coreprofile(rpc)
-        elif opts.instrument_cmd == 'power':
-            cmd_power(rpc)
-        elif opts.instrument_cmd == 'wireless':
-            cmd_wireless(rpc)
-        else:
-            # print("unknown cmd:", opts.instrument_cmd)
-            test(rpc)
-    except:
-        traceback.print_exc()
-    rpc.deinit()
-    device_service.free_device(device)
-    return
+        return None
+    return rpc
+
+def get_wireless_rpc(device):
+    ret, name, psk = start_wireless_mode(device)
+    #print(f"ret = {ret}, psk = {psk}")
+    addresses, port = wait_for_wireless_device(name, 30)
+    #print(f"addrs = {addresses}, port = {port}")
+    rpc = init_wireless_rpc(addresses, port, psk)
+    #print(f"rpc = {rpc}")
+    return rpc
+
+
 
 class DTXFragment:
 
@@ -904,15 +828,15 @@ class DTXSockTransport:
     
     def pre_start(self, rpc):
         def challenge(res):
-            print("challenge:")
+            # print("challenge:")
             bb = auxiliary_to_pyobject(res.raw.get_auxiliary_at(0))
-            hexdump(bb)
+            #hexdump(bb)
             key = self._psk.encode('utf-8')
             bb = bytes(bb)
             d = aes_256_cbc_decrypt(bb, key)
             self._done.set()
             out = aes_256_cbc_encrypt(d[:-1] + b'ack\x00', key)
-            hexdump(out)
+            #hexdump(out)
             return out
         rpc.register_callback("challenge:", challenge)
 
@@ -1228,7 +1152,55 @@ class InstrumentRPC:
             self._sync_waits[wait_key]['event'].set()
         
                         
-                
+def instrument_main(device, opts):
+    device_service = DeviceService()
+    if opts.wireless:
+        rpc = get_wireless_rpc(device)
+    else:
+        rpc = get_usb_rpc(device)
+    if not rpc:
+        print("failed to init rpc")
+        device_service.free_device(device)
+        return
+    try:
+        if opts.instrument_cmd == 'channels':
+            cmd_channels(rpc)
+        elif opts.instrument_cmd == 'sysmontap':
+            cmd_sysmontap(rpc)
+        elif opts.instrument_cmd == 'graphics':
+            cmd_graphics(rpc)
+        elif opts.instrument_cmd == 'running':
+            cmd_running(rpc)
+        elif opts.instrument_cmd == 'timeinfo':
+            cmd_timeinfo(rpc)
+        elif opts.instrument_cmd == 'execname':
+            cmd_execname(rpc, opts.pid)
+        elif opts.instrument_cmd == 'monitor':
+            cmd_monitor(rpc, opts.pid, opts.network)
+        elif opts.instrument_cmd == 'activity':
+            cmd_activity(rpc, opts.pid)
+        elif opts.instrument_cmd == 'networking':
+            cmd_networking(rpc)
+        elif opts.instrument_cmd == 'energy':
+            cmd_energy(rpc, opts.pid)
+        elif opts.instrument_cmd == 'netstat':
+            cmd_netstat(rpc, opts.pid)
+        elif opts.instrument_cmd == 'kill':
+            cmd_kill(rpc, opts.pid)
+        elif opts.instrument_cmd == 'coreprofile':
+            cmd_coreprofile(rpc)
+        elif opts.instrument_cmd == 'power':
+            cmd_power(rpc)
+        elif opts.instrument_cmd == 'wireless':
+            cmd_wireless(rpc)
+        else:
+            # print("unknown cmd:", opts.instrument_cmd)
+            test(rpc)
+    except:
+        traceback.print_exc()
+    rpc.deinit()
+    device_service.free_device(device)
+    return                
 
 def main():
     parser = argparse.ArgumentParser()
