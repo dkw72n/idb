@@ -141,6 +141,7 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("sysmontap")
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("codec")
     instrument_cmd_parsers.add_parser("timeinfo")
     p = instrument_cmd_parsers.add_parser("execname")
     p.add_argument("pid", type=float)
@@ -286,6 +287,13 @@ def cmd_running(rpc):
     for item in running:
         sorted_item = sorted(item.items())
         print('\t'.join(map(str, [v for _, v in sorted_item])))
+    rpc.stop()
+
+def cmd_codec(rpc):
+    selector = "traceCodesFile"
+    rpc.start()
+    codecs = rpc.call("com.apple.instruments.server.services.deviceinfo", selector).parsed
+    print(codecs)
     rpc.stop()
 
 def cmd_timeinfo(rpc):
@@ -536,14 +544,14 @@ def test(rpc):
     #print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").plist)
     #time.sleep(10)
     #print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").plist)
-    #print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
+    print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
     #channel = "com.apple.instruments.server.services.power"
     #stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
     #print("open", stream_num)
     #print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
-    channel = "com.apple.instruments.server.services.coreprofilesessiontap"
-    print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
-    print("start", rpc.call(channel, "start").parsed)
+    #channel = "com.apple.instruments.server.services.coreprofilesessiontap"
+    #print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
+    #print("start", rpc.call(channel, "start").parsed)
     #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0).parsed)
     #print("opengl", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 5013.0).parsed)
     #time.sleep(10)
@@ -551,11 +559,11 @@ def test(rpc):
     #print("cleanup", rpc.call("com.apple.instruments.server.services.graphics.opengl", "cleanup").parsed)
     #time.sleep(3)
     try:
-        while 1: time.sleep(10)
+        while 0: time.sleep(10)
     except:
         pass
     #print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
-    print("stop", rpc.call(channel, "stop").parsed)
+    #print("stop", rpc.call(channel, "stop").parsed)
     rpc.stop()
 
 """
@@ -1171,6 +1179,8 @@ def instrument_main(device, opts):
             cmd_graphics(rpc)
         elif opts.instrument_cmd == 'running':
             cmd_running(rpc)
+        elif opts.instrument_cmd == 'codec':
+            cmd_codec(rpc)
         elif opts.instrument_cmd == 'timeinfo':
             cmd_timeinfo(rpc)
         elif opts.instrument_cmd == 'execname':
