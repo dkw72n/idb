@@ -204,6 +204,22 @@ class DTXMessage:
         self._auxiliaries[idx] = buffer
         return self
 
+    def new_reply(self):
+        ret = DTXMessage()
+        ret.channel_code = self.channel_code
+        ret.identifier = self.identifier
+        ret.conversation_index = self.conversation_index + 1
+        return ret
+    
+    @property
+    def conversation_index(self):
+        return self._message_header.conversationIndex
+
+    @conversation_index.setter
+    def conversation_index(self, idx:int):
+        self._message_header.conversationIndex = idx
+        return self
+
     @property
     def channel_code(self):
         return self._message_header.channelCode
