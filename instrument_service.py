@@ -817,7 +817,8 @@ class DTXClientMixin:
             fragment = DTXFragment(buf)
             if fragment.completed:
                 return fragment.message
-            key = (client.value, fragment.key)
+            value = getattr(client, 'value', id(client))
+            key = (value, fragment.key)
             if fragment.header:
                 self._dtx_demux_manager[key] = fragment
             else:
@@ -885,13 +886,16 @@ class DTXSockTransport:
             l = length - len(ret)
             if l > 8192: l = 8192
             
-            if timeout > 0:
-                client.settimeout(timeout)
-                rb = client.recv(l)
-                client.settimeout(None)
-            else:
-                rb = client.recv(l)
-                
+            try:
+                if timeout > 0:
+                    client.settimeout(timeout/1000) # 毫秒, 需要转成秒
+                    rb = client.recv(l)
+                    client.settimeout(None)
+                else:
+                    rb = client.recv(l)
+            except socket.timeout:
+                pass
+
             if not rb:
                 return None
             ret += rb
