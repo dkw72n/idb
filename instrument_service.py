@@ -172,7 +172,8 @@ def cmd_channels(rpc):
             print(k, v)
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.stop()
 
 def cmd_sysmontap(rpc):
@@ -186,7 +187,8 @@ def cmd_sysmontap(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     # print("set", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamplingRate:", 40.0).parsed) # 没反应
     rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {
         'ur': 1000, 
@@ -214,7 +216,8 @@ def cmd_graphics(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
     print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
     print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
@@ -252,7 +255,8 @@ def cmd_monitor(rpc, pid, network_stat = True):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
     print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
     print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
@@ -324,7 +328,8 @@ def pre_call(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
 
 
 
@@ -613,10 +618,11 @@ def start_wireless_mode(device): # returns (ret, name, preshared_key)
     prepare_rpc(rpc)
     try:
         channel = "com.apple.instruments.server.services.wireless"
-        enabled = rpc.call(channel, "isServiceEnabled").parsed
-        # print("enabled", enabled)
-        if enabled:
+        while 1:
+            enabled = rpc.call(channel, "isServiceEnabled").parsed
+            if not enabled: break
             print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+            time.sleep(1)
         psk = uuid.uuid4().hex
         name = uuid.uuid4().hex[:4]
         print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat_" + name, float(19900724), psk).parsed)
@@ -645,21 +651,19 @@ def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
             if name == expecting_name:
                 ctx['addresses'] = list(map(socket.inet_ntoa, info.addresses))
                 ctx['port'] = info.port
+                print(f"[Service] `{name}` found, `{ctx}`")
                 found.set()
 
     zeroconf = Zeroconf()
     listener = MyListener()
     browser = ServiceBrowser(zeroconf, "_19900724._tcp.local.", listener)
     
-    try:
-        found.wait(timeout)
-    except:
+    if not found.wait(timeout):
         # timeout ?
         ctx['addresses'] = []
         ctx['port'] = 0
-    finally:
-        browser.cancel()
-        zeroconf.close()
+    browser.cancel()
+    zeroconf.close()
 
     return ctx['addresses'], ctx['port']
 
@@ -776,6 +780,7 @@ class DTXSockTransport:
         :return: instrument client(C对象), 在使用完毕后请务必调用free_client来释放该对象内存
         """
         client = socket.create_connection((addr[0], addr[1]), timeout=3)
+        print("[WIRELESS] connection made")
         self._psk = addr[2]
         self._done = threading.Event()
         return client
@@ -836,17 +841,19 @@ class DTXSockTransport:
     
     def pre_start(self, rpc):
         def challenge(res):
-            # print("challenge:")
+            #print("challenge:")
             bb = auxiliary_to_pyobject(res.raw.get_auxiliary_at(0))
             #hexdump(bb)
             key = self._psk.encode('utf-8')
             bb = bytes(bb)
             d = aes_256_cbc_decrypt(bb, key)
-            self._done.set()
+            #print(d)
             out = aes_256_cbc_encrypt(d[:-1] + b'ack\x00', key)
             #hexdump(out)
+            self._done.set()
             return out
         rpc.register_callback("challenge:", challenge)
+        print("[WIRELESS] challange callback registered")
 
     def post_start(self, rpc):
         self._done.wait()
