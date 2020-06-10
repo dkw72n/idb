@@ -9,7 +9,12 @@ from service import Service
 from libimobiledevice import IDeviceInfo, IDeviceEventCb, IDeviceOptions, IDeviceError
 from libimobiledevice import idevice_get_device_list_extended, idevice_device_list_extended_free
 from libimobiledevice import idevice_event_subscribe, idevice_event_unsubscribe
-from libimobiledevice import idevice_new_with_options, idevice_free
+from libimobiledevice import idevice_new_with_options, idevice_new_force_network, idevice_free
+from libimobiledevice import heartbeat_client_start_service, heartbeat_receive_with_timeout, heartbeat_send, heartbeat_client_free
+from libimobiledevice import plist_new_string, plist_new_dict, plist_dict_set_item, plist_free
+
+import threading
+import time
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -44,6 +49,49 @@ class DeviceService(Service):
         idevice_device_list_extended_free(device_list_p)
         return result
 
+    @classmethod
+    def start_heartbeat(cls, udid):
+        if ':' not in udid:
+            print("no need to heartbeat")
+            return
+        udid, addr = udid.split(':', 1)
+        print(f'udid={udid} addr={addr}')
+        control = {"running": True}
+        def start_heartbeat():
+            device = c_void_p()
+            assert idevice_new_force_network(pointer(device), udid.encode('utf-8'), addr.encode('utf-8')) == 0
+            heartbeatcli = c_void_p()
+            
+            resp = plist_new_dict()
+            assert resp
+            polo = plist_new_string(b"Polo")
+            plist_dict_set_item(resp, b"Command", polo)
+            
+            assert heartbeat_client_start_service(device, pointer(heartbeatcli), b"perfcat") == 0
+            while control['running']:
+                recv_msg = c_void_p()
+                if heartbeat_receive_with_timeout(heartbeatcli, pointer(recv_msg), 15000) != 0:
+                    break
+                assert heartbeat_send(heartbeatcli, resp) == 0
+                print("beat", recv_msg)
+                plist_free(recv_msg)
+
+            print("died")
+            plist_free(resp)
+            heartbeat_client_free(heartbeatcli)
+            idevice_free(device)
+            control['running'] = False
+        t = threading.Thread(target = start_heartbeat)
+        t.start()
+        try:
+            while control['running']:
+                time.sleep(1)
+        except:
+            pass
+        finally:
+            control['running'] = False
+            t.join()
+
     def new_device(self, udid):
         """
         通过udid创建新的device对象，用于调用其他接口
@@ -51,6 +99,14 @@ class DeviceService(Service):
         :return: device对象，注意该对象为C对象，请在使用完后务必调用free_device方法来回收内存
         """
         device = c_void_p()
+        if ':' in udid:
+            udid, addr = udid.split(':', 1)
+            print(f'udid={udid} addr={addr}')
+            if idevice_new_force_network:
+                ret = idevice_new_force_network(pointer(device), udid.encode('utf-8'), addr.encode('utf-8'))
+                if ret != IDeviceError.IDEVICE_E_SUCCESS:
+                    return None
+                return device
         options = int(IDeviceOptions.IDEVICE_LOOKUP_USBMUX | IDeviceOptions.IDEVICE_LOOKUP_NETWORK)
         ret = idevice_new_with_options(pointer(device), udid.encode("utf-8"), options)
         if ret != IDeviceError.IDEVICE_E_SUCCESS:

@@ -91,6 +91,13 @@ plist_new_array = libplist.plist_new_array
 plist_new_array.argtypes = None
 plist_new_array.restype = c_void_p
 
+plist_new_dict = libplist.plist_new_dict
+plist_new_dict.argtypes = []
+plist_new_dict.restype = c_void_p
+
+plist_dict_set_item = libplist.plist_dict_set_item
+plist_dict_set_item.argtypes = [c_void_p, c_char_p, c_void_p]
+plist_dict_set_item.restype = None
 # --------------------------------- Crypto ------------------------------------------
 
 
@@ -221,6 +228,15 @@ idevice_new.restype = c_int
 idevice_new_with_options = libimobiledevice.idevice_new_with_options
 idevice_new_with_options.argtypes = [POINTER(c_void_p), c_char_p, c_int]
 idevice_new_with_options.restype = c_int
+
+try:
+    # idevice_error_t idevice_new_force_network(idevice_t *device, const char* udid, const char* host);
+    idevice_new_force_network = libimobiledevice.idevice_new_force_network
+    idevice_new_force_network.argtypes = [POINTER(c_void_p), c_char_p, c_char_p]
+    idevice_new_force_network.restype = c_int
+    #print(idevice_new_force_network)
+except:
+    idevice_new_force_network = None
 
 # idevice_error_t idevice_free(idevice_t device);
 idevice_free = libimobiledevice.idevice_free
@@ -778,3 +794,30 @@ afc_get_device_info_key.restype = c_int
 afc_dictionary_free = libimobiledevice.afc_dictionary_free
 afc_dictionary_free.argtypes = [POINTER(c_char_p)]
 afc_dictionary_free.restype = c_int
+
+
+
+#heartbeat_error_t heartbeat_client_start_service(idevice_t device, heartbeat_client_t * client, const char* label);
+heartbeat_client_start_service = libimobiledevice.heartbeat_client_start_service
+heartbeat_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+heartbeat_client_start_service.restype = c_int
+
+#heartbeat_error_t heartbeat_client_free(heartbeat_client_t client);
+heartbeat_client_free = libimobiledevice.heartbeat_client_free
+heartbeat_client_free.argtypes = [c_void_p] 
+heartbeat_client_free.restype = c_int 
+
+#heartbeat_error_t heartbeat_send(heartbeat_client_t client, plist_t plist);
+heartbeat_send = libimobiledevice.heartbeat_send
+heartbeat_send.argtypes = [c_void_p, c_void_p]
+heartbeat_send.restype = c_int 
+
+#heartbeat_error_t heartbeat_receive(heartbeat_client_t client, plist_t * plist);
+heartbeat_receive = libimobiledevice.heartbeat_receive
+heartbeat_receive.argtypes = [c_void_p, POINTER(c_void_p)]
+heartbeat_receive.restype = c_int 
+
+#heartbeat_error_t heartbeat_receive_with_timeout(heartbeat_client_t client, plist_t * plist, uint32_t timeout_ms);
+heartbeat_receive_with_timeout = libimobiledevice.heartbeat_receive_with_timeout
+heartbeat_receive_with_timeout.argtypes = [c_void_p, POINTER(c_void_p), c_uint32]
+heartbeat_receive_with_timeout.restype = c_int 

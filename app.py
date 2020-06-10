@@ -188,7 +188,7 @@ def enable_Wireless(udid,enable = 1):
     device = _get_device_or_die(udid)
     lockdown_service = LockdownService()
     client = lockdown_service.new_client(device)
-    lockdown_service.enable_wireless(client,int(enable),"A3F0A50F-96BC-54E9-AFED-08960FCFB75D","8E32E7B0-8D6D-4911-BF4E-D4370BF13871")
+    lockdown_service.enable_wireless(client,int(enable),"","")
     lockdown_service.free_client(client)
 
 def orientation_to_str(orientation):
@@ -434,6 +434,8 @@ def remove_path(udid, device_path):
     afc_service.free_client(afc_client)
     device_service.free_device(device)
 
+def start_heartbeat(udid):
+    DeviceService.start_heartbeat(udid)
 
 def main():
     argparser = argparse.ArgumentParser()
@@ -486,6 +488,8 @@ def main():
     cmd_wireless = cmd_parser.add_parser("enableWireless")
     cmd_wireless.add_argument("-e", "--enable", required=False)
 
+    cmd_parser.add_parser("heartbeat")
+
     argparser.add_argument("-u", "--udid", help="udid")
 
     args = argparser.parse_args()
@@ -521,6 +525,8 @@ def main():
         push_file(args.udid, args.local_file, args.device_directory)
     elif args.command == 'enableWireless':
         enable_Wireless(args.udid, args.enable)
+    elif args.command == 'heartbeat':
+        start_heartbeat(args.udid)
     
     else:
         argparser.print_usage()
