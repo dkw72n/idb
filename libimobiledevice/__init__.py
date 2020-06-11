@@ -25,12 +25,12 @@ elif sys.platform.startswith('linux'):
     libplist = libimobiledevice
     libusbmuxd = libimobiledevice
 else : # mac os
-    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libcrypto.dylib"))
-    libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist++.dylib"))
-    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libssl.dylib"))
-    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libimobiledevice.dylib"))
-    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist.dylib"))
-    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libusbmuxd.dylib"))
+    libcrypto = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libcrypto.1.1.dylib"))
+    libplist_plus = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist++.3.dylib"))
+    libssl = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libssl.1.1.dylib"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libimobiledevice.6.dylib"))
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist.3.dylib"))
+    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libusbmuxd.6.dylib"))
 
 
 # --------------------------------- plist -----------------------------------------
