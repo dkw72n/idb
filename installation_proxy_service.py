@@ -7,9 +7,11 @@ from ctypes import cdll, c_int, c_char, POINTER, c_char_p, c_byte, pointer, cast
 from service import Service
 # lockdown
 from libimobiledevice import InstProxyError
-from libimobiledevice import instproxy_client_start_service, instproxy_client_free, instproxy_browse, instproxy_client_options_new, instproxy_client_options_add, instproxy_client_options_set_return_attributes, instproxy_client_options_free
+from libimobiledevice import instproxy_client_start_service, instproxy_client_free, instproxy_install, instproxy_uninstall, instproxy_browse, instproxy_client_options_new, instproxy_client_options_add, instproxy_client_options_set_return_attributes, instproxy_client_options_free
 from libimobiledevice import plist_free, plist_to_bin, plist_to_bin_free, plist_to_xml, plist_to_xml_free
 import plistlib
+import zipfile
+from afc_service import AfcService
 
 from utils import read_buffer_from_pointer
 
@@ -41,6 +43,46 @@ class InstallationProxyService(Service):
         """
         ret = instproxy_client_free(client)
         return ret == InstProxyError.INSTPROXY_E_SUCCESS
+
+
+    def uninstall(self, device, client, bundleid):
+        instproxy_uninstall(client, bundleid.encode("utf-8"), None, None, None)
+
+    def install(self, device, client, ipa_path):
+        
+        afcService = AfcService()
+        afcClient = afcService.new_client(device)
+        PKG_PATH= "PublicStaging"
+        pkgname=PKG_PATH+"/tmp"
+        pkgpath =PKG_PATH+"/tmp/"
+        afcService.make_directory(afcClient, pkgpath)
+
+        with zipfile.ZipFile(ipa_path, 'r') as zf:
+            for zname in zf.namelist():
+                if zname == None:
+                     continue
+
+                if zname[len(zname)-1] == '/':
+                     ##创建文件夹
+                    afcService.make_directory(afcClient, pkgpath+zname)
+                else:
+                    try: 
+                        data = zf.read(zname)
+                        afc_file = afcService.open_file(afcClient, pkgpath+zname, "w")
+                        afc_file.write(data)
+                        afc_file.close()
+
+                    except KeyError:
+                         print('ERROR: Did not find {} in zip file'.format(zname))
+
+
+        client_opts = instproxy_client_options_new()
+        
+        instproxy_install(client, pkgname.encode("utf-8"), client_opts, None, None)
+
+        afcService.free_client(afcClient)
+        instproxy_client_options_free(client_opts)
+
 
     def browse(self, client, application_type):
         """
