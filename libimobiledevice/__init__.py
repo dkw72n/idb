@@ -499,6 +499,15 @@ instproxy_client_free = libimobiledevice.instproxy_client_free
 instproxy_client_free.argtypes = [c_void_p]
 instproxy_client_free.restype = c_int
 
+instproxy_uninstall = libimobiledevice.instproxy_uninstall
+instproxy_uninstall.argtypes = [c_void_p, c_char_p, c_void_p, c_void_p , c_void_p]
+instproxy_uninstall.restype = c_int
+
+#instproxy_error_t instproxy_install(instproxy_client_t client, const char *pkg_path, plist_t client_options, instproxy_status_cb_t status_cb, void *user_data)
+instproxy_install = libimobiledevice.instproxy_install
+instproxy_install.argtypes = [c_void_p, c_char_p, c_void_p, c_void_p , c_void_p]
+instproxy_install.restype = c_int
+
 # instproxy_error_t instproxy_browse(instproxy_client_t client, plist_t client_options, plist_t *result);
 instproxy_browse = libimobiledevice.instproxy_browse
 instproxy_browse.argtypes = [c_void_p, c_void_p, POINTER(c_void_p)]

@@ -154,6 +154,8 @@ def setup_parser(parser):
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("kill")
     p.add_argument("pid", type=float)
+    p = instrument_cmd_parsers.add_parser("launch")
+    p.add_argument("bundleid")
     p = instrument_cmd_parsers.add_parser("monitor")
     p.add_argument("pid", type=float)
     p.add_argument("--network", default=True, action='store_true')
@@ -527,6 +529,16 @@ def cmd_wireless(rpc):
         print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
     rpc.stop()
 
+## sample:  launch com.ksg.tako
+def cmd_launch(rpc, bundleid):
+    def on_channel_message(res):
+        print(res)
+    rpc.start()
+    channel = "com.apple.instruments.server.services.processcontrol"
+    rpc.register_channel_callback(channel, on_channel_message)
+    print("start", rpc.call(channel, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", "", bundleid, {}, [], {"StartSuspendedKey":0,"KillExisting":1}).parsed)
+    rpc.stop()
+
 def test(rpc):
 
     done = Event()
@@ -617,6 +629,7 @@ def start_wireless_mode(device): # returns (ret, name, preshared_key)
         return
     prepare_rpc(rpc)
     try:
+
         channel = "com.apple.instruments.server.services.wireless"
         while 1:
             enabled = rpc.call(channel, "isServiceEnabled").parsed
@@ -690,7 +703,6 @@ def get_wireless_rpc(device):
     rpc = init_wireless_rpc(addresses, port, psk)
     #print(f"rpc = {rpc}")
     return rpc
-
 
 
 class DTXFragment:
@@ -1210,6 +1222,8 @@ def instrument_main(device, opts):
             cmd_power(rpc)
         elif opts.instrument_cmd == 'wireless':
             cmd_wireless(rpc)
+        elif opts.instrument_cmd == 'launch':
+            cmd_launch(rpc, opts.bundleid)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
             test(rpc)

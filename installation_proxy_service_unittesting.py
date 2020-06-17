@@ -41,6 +41,26 @@ class InstallationProxyServiceTestCase(unittest.TestCase):
             print("")
         self.installation_proxy_service.free_client(client)
 
+    def test1_install(self):
+        device = self._create_device()
+
+        client = self.installation_proxy_service.new_client(device)
+        self.assertIsNotNone(client)
+        print("start install")
+        apps = self.installation_proxy_service.install(device, client, "/Users/jimmy/Downloads/tmp.ipa")
+        print("finsih install")
+        self.installation_proxy_service.free_client(client)
+
+    def test_uninstall(self):
+        device = self._create_device()
+
+        client = self.installation_proxy_service.new_client(device)
+        self.assertIsNotNone(client)
+        print("start uninstall")
+        apps = self.installation_proxy_service.uninstall(device, client, "com.seasun.jxpocket.tako")
+        print("finsih uninstall")
+        self.installation_proxy_service.free_client(client)
+
 
 if __name__ == '__main__':
     unittest.main()
