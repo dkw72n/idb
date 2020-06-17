@@ -492,3 +492,22 @@ push file test.txt to /Temp
 $ idb pull /Temp/test.txt
 pull file F:\lds\project\idb\test.txt
 ```
+
+## Install ipa into device
+
+```
+$ idb install ~/tmp.ipa
+
+```
+
+## Uninstall ipa into device
+
+```
+$ idb uninstall com.seasun.jxpocket.tako
+
+```
+
+## launch app with bundle id
+```
+$ idb instrument launch com.ksg.tako
+``` 

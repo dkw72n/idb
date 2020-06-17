@@ -434,6 +434,25 @@ def remove_path(udid, device_path):
     afc_service.free_client(afc_client)
     device_service.free_device(device)
 
+def install_ipa(udid, ipa_path):
+
+    device = _get_device_or_die(udid)
+    installation_proxy_service = InstallationProxyService()
+    client = installation_proxy_service.new_client(device)
+    print("start install")
+    apps = installation_proxy_service.install(device, client, ipa_path)
+    print("finsih install")
+    installation_proxy_service.free_client(client)
+
+        
+def uninstall_ipa(udid, bundle_id):
+    device = _get_device_or_die(udid)
+    installation_proxy_service = InstallationProxyService()
+    client = installation_proxy_service.new_client(device)
+    print("start install")
+    apps = installation_proxy_service.uninstall(device, client, bundle_id)
+    print("finsih install")
+    installation_proxy_service.free_client(client)
 
 def main():
     argparser = argparse.ArgumentParser()
@@ -488,6 +507,14 @@ def main():
 
     argparser.add_argument("-u", "--udid", help="udid")
 
+    ## install
+    install_parser = cmd_parser.add_parser("install")
+    install_parser.add_argument("ipa_path")
+
+    ## uninstall
+    uninstall_parser = cmd_parser.add_parser("uninstall")
+    uninstall_parser.add_argument("bundle_id")
+
     args = argparser.parse_args()
     if args.command == "devices":
         print_devices()
@@ -521,7 +548,10 @@ def main():
         push_file(args.udid, args.local_file, args.device_directory)
     elif args.command == 'enableWireless':
         enable_Wireless(args.udid, args.enable)
-    
+    elif args.command == 'install':
+        install_ipa(args.udid, args.ipa_path)
+    elif args.command == 'uninstall':
+        uninstall_ipa(args.udid, args.bundle_id)
     else:
         argparser.print_usage()
 
