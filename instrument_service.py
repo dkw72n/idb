@@ -4,7 +4,11 @@ from threading import Thread, Event
 import time
 import traceback
 from service import Service
-
+import socket
+import uuid
+import threading
+from zeroconf import ServiceBrowser, Zeroconf
+from utils import aes_256_cbc_decrypt, aes_256_cbc_encrypt
 
 from device_service import DeviceService
 from libimobiledevice import            \
@@ -130,12 +134,14 @@ d1 73 74 54 72 6f 6f 74 80 01 00 08 00 11 00 1a 00 23 00 2d 00 32 00 5f 00 65 00
 00 00 00 75 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 fe
 """)
 def setup_parser(parser):
+    parser.add_argument("--wireless", default=False, action='store_true')
     instrument_cmd_parsers = parser.add_subparsers(dest="instrument_cmd")
     instrument_cmd_parsers.required = True
     instrument_cmd_parsers.add_parser("channels")
     instrument_cmd_parsers.add_parser("sysmontap")
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("codec")
     instrument_cmd_parsers.add_parser("timeinfo")
     p = instrument_cmd_parsers.add_parser("execname")
     p.add_argument("pid", type=float)
@@ -168,7 +174,8 @@ def cmd_channels(rpc):
             print(k, v)
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.stop()
 
 def cmd_sysmontap(rpc):
@@ -182,7 +189,8 @@ def cmd_sysmontap(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     # print("set", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamplingRate:", 40.0).parsed) # 没反应
     rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {
         'ur': 1000, 
@@ -210,7 +218,8 @@ def cmd_graphics(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
     print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
     print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
@@ -248,7 +257,8 @@ def cmd_monitor(rpc, pid, network_stat = True):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
     rpc.register_channel_callback("com.apple.instruments.server.services.graphics.opengl", on_graphics_message)
     print("set", rpc.call("com.apple.instruments.server.services.graphics.opengl", "setSamplingRate:", 5.0).parsed) # 5 -> 0.5秒一条消息
     print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0.0).parsed)
@@ -285,6 +295,13 @@ def cmd_running(rpc):
         print('\t'.join(map(str, [v for _, v in sorted_item])))
     rpc.stop()
 
+def cmd_codec(rpc):
+    selector = "traceCodesFile"
+    rpc.start()
+    codecs = rpc.call("com.apple.instruments.server.services.deviceinfo", selector).parsed
+    print(codecs)
+    rpc.stop()
+
 def cmd_timeinfo(rpc):
     rpc.start()
     machTimeInfo = rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed
@@ -313,7 +330,8 @@ def pre_call(rpc):
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
-    done.wait()
+    if not done.wait(5):
+        print("[WARN] timeout waiting capabilities")
 
 
 
@@ -500,7 +518,7 @@ def cmd_wireless(rpc):
     print("enabled", enabled)
     if enabled:
         print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
-    print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat_test", float(77498864), "U" * 32).parsed)
+    print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat", float(77498864), "U" * 32).parsed)
     enabled = rpc.call(channel, "isServiceEnabled").parsed
     print("enabled", enabled)
     if enabled:
@@ -543,14 +561,14 @@ def test(rpc):
     #print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").plist)
     #time.sleep(10)
     #print("stop", rpc.call("com.apple.instruments.server.services.sysmontap", "stop").plist)
-    #print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
+    print("runningProcesses", rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed)
     #channel = "com.apple.instruments.server.services.power"
     #stream_num = rpc.call(channel, "openStreamForPath:", "live/level.dat").parsed
     #print("open", stream_num)
     #print("start", rpc.call(channel, "startStreamTransfer:", float(stream_num)).parsed)
-    channel = "com.apple.instruments.server.services.coreprofilesessiontap"
-    print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
-    print("start", rpc.call(channel, "start").parsed)
+    #channel = "com.apple.instruments.server.services.coreprofilesessiontap"
+    #print("config", rpc.call(channel, "setConfig:", InstrumentRPCRawArg(coreprofile_cfg)).plist)
+    #print("start", rpc.call(channel, "start").parsed)
     #print("start", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:", 0).parsed)
     #print("opengl", rpc.call("com.apple.instruments.server.services.graphics.opengl", "startSamplingAtTimeInterval:processIdentifier:", 0, 5013.0).parsed)
     #time.sleep(10)
@@ -558,61 +576,134 @@ def test(rpc):
     #print("cleanup", rpc.call("com.apple.instruments.server.services.graphics.opengl", "cleanup").parsed)
     #time.sleep(3)
     try:
-        while 1: time.sleep(10)
+        while 0: time.sleep(10)
     except:
         pass
     #print("stop", rpc.call(channel, "endStreamTransfer:", float(stream_num)).parsed)
-    print("stop", rpc.call(channel, "stop").parsed)
+    #print("stop", rpc.call(channel, "stop").parsed)
     rpc.stop()
 
-def instrument_main(device, opts):
-    device_service = DeviceService()
+"""
+
+           +
+           v
+    +------+-------+
+    |start wireless+-------failed-----+
+    +------+-------+                  |
+           |                          |
+           |successful                |
+           |                          |
++----------v------------+             |
+|start zeroconf listener+--timeout--->+
++----------+------------+             |
+           |                          |
+           |found                     |
+           |                          |
+       +---v---+                      |
+       |connect+-----------failed---->+
+       +---+---+                      |
+           |                          |
+           |successful                |
+           |                          |
+        +--v---+               +------v----+
+        |return|               |exit failed|
+        +------+               +-----------+
+
+"""
+
+def prepare_rpc(rpc):
+    def dropped_message(res):
+        print("[DROP]", res.plist, res.raw.channel_code)
+        pass
+    def channel_canceled(res):
+        print("not supported:", res.plist)
+        rpc.stop()
+    rpc.register_unhandled_callback(dropped_message)
+    rpc.register_callback("_channelCanceled:", channel_canceled)
+    rpc.start()
+
+def start_wireless_mode(device): # returns (ret, name, preshared_key)
     rpc = InstrumentRPC()
     if not rpc.init(DTXUSBTransport, device):
         print("failed to init rpc")
-        device_service.free_device(device)
         return
+    prepare_rpc(rpc)
     try:
-        if opts.instrument_cmd == 'channels':
-            cmd_channels(rpc)
-        elif opts.instrument_cmd == 'sysmontap':
-            cmd_sysmontap(rpc)
-        elif opts.instrument_cmd == 'graphics':
-            cmd_graphics(rpc)
-        elif opts.instrument_cmd == 'running':
-            cmd_running(rpc)
-        elif opts.instrument_cmd == 'timeinfo':
-            cmd_timeinfo(rpc)
-        elif opts.instrument_cmd == 'execname':
-            cmd_execname(rpc, opts.pid)
-        elif opts.instrument_cmd == 'monitor':
-            cmd_monitor(rpc, opts.pid, opts.network)
-        elif opts.instrument_cmd == 'activity':
-            cmd_activity(rpc, opts.pid)
-        elif opts.instrument_cmd == 'networking':
-            cmd_networking(rpc)
-        elif opts.instrument_cmd == 'energy':
-            cmd_energy(rpc, opts.pid)
-        elif opts.instrument_cmd == 'netstat':
-            cmd_netstat(rpc, opts.pid)
-        elif opts.instrument_cmd == 'kill':
-            cmd_kill(rpc, opts.pid)
-        elif opts.instrument_cmd == 'coreprofile':
-            cmd_coreprofile(rpc)
-        elif opts.instrument_cmd == 'power':
-            cmd_power(rpc)
-        elif opts.instrument_cmd == 'wireless':
-            cmd_wireless(rpc)
-        elif opts.instrument_cmd == 'launch':
-            cmd_launch(rpc, opts.bundleid)
-        else:
-            # print("unknown cmd:", opts.instrument_cmd)
-            test(rpc)
-    except:
-        traceback.print_exc()
-    rpc.deinit()
-    device_service.free_device(device)
-    return
+
+        channel = "com.apple.instruments.server.services.wireless"
+        while 1:
+            enabled = rpc.call(channel, "isServiceEnabled").parsed
+            if not enabled: break
+            print("remove", rpc.call(channel, "removeDaemonFromService").parsed)
+            time.sleep(1)
+        psk = uuid.uuid4().hex
+        name = uuid.uuid4().hex[:4]
+        print("start", rpc.call(channel, "startServerDaemonWithName:type:passphrase:", "perfcat_" + name, float(19900724), psk).parsed)
+        enabled = rpc.call(channel, "isServiceEnabled").parsed
+        # print("enabled", enabled)
+
+        return bool(enabled), name, psk
+    finally:
+        rpc.stop()
+
+
+def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
+    expecting_name = f"perfcat_{name}._19900724._tcp.local."
+    print(f"[WIRELESS] expecting {expecting_name}")
+    found = threading.Event()
+    ctx = {}
+
+    class MyListener:
+
+        def remove_service(self, zeroconf, type, name):
+            print("[Service] `%s` removed" % (name,))
+            
+        def add_service(self, zeroconf, type, name):
+            info = zeroconf.get_service_info(type, name)
+            print(f"[Service] `{name}` added, service info: `{info}`")
+            if name == expecting_name:
+                ctx['addresses'] = list(map(socket.inet_ntoa, info.addresses))
+                ctx['port'] = info.port
+                print(f"[Service] `{name}` found, `{ctx}`")
+                found.set()
+
+    zeroconf = Zeroconf()
+    listener = MyListener()
+    browser = ServiceBrowser(zeroconf, "_19900724._tcp.local.", listener)
+    
+    if not found.wait(timeout):
+        # timeout ?
+        ctx['addresses'] = []
+        ctx['port'] = 0
+    browser.cancel()
+    zeroconf.close()
+
+    return ctx['addresses'], ctx['port']
+
+def init_wireless_rpc(addresses, port, psk):
+    for addr in addresses:
+        rpc = InstrumentRPC()
+        inited = rpc.init(DTXSockTransport, (addr, int(port), psk))
+        if inited:
+            return rpc
+    return None
+
+
+def get_usb_rpc(device):
+    rpc = InstrumentRPC()
+    if not rpc.init(DTXUSBTransport, device):
+        return None
+    return rpc
+
+def get_wireless_rpc(device):
+    ret, name, psk = start_wireless_mode(device)
+    #print(f"ret = {ret}, psk = {psk}")
+    addresses, port = wait_for_wireless_device(name, 30)
+    #print(f"addrs = {addresses}, port = {port}")
+    rpc = init_wireless_rpc(addresses, port, psk)
+    #print(f"rpc = {rpc}")
+    return rpc
+
 
 class DTXFragment:
 
@@ -674,7 +765,8 @@ class DTXClientMixin:
             fragment = DTXFragment(buf)
             if fragment.completed:
                 return fragment.message
-            key = (client.value, fragment.key)
+            value = getattr(client, 'value', id(client))
+            key = (value, fragment.key)
             if fragment.header:
                 self._dtx_demux_manager[key] = fragment
             else:
@@ -690,6 +782,94 @@ class DTXClientMixin:
             return
         self._dtx_demux_manager = {}
 
+
+class DTXSockTransport:
+
+    def new_client(self, addr):
+        """
+        创建instrument client，用于调用instrument服务的其他接口
+        :param device: 由DeviceService创建的device对象（C对象）
+        :return: instrument client(C对象), 在使用完毕后请务必调用free_client来释放该对象内存
+        """
+        client = socket.create_connection((addr[0], addr[1]), timeout=3)
+        print("[WIRELESS] connection made")
+        self._psk = addr[2]
+        self._done = threading.Event()
+        return client
+
+    def free_client(self, client):
+        """
+        释放 instrument client
+        :param client: instrument client(C对象）
+        :return: bool 是否成功
+        """
+        client.close()
+        return True
+
+    def send_all(self, client, buffer:bytes) -> bool:
+        """
+        向 instrument client 发送整块buffer
+        成功时表示整块数据都被发出
+        :param client: instrument client(C对象）
+        :param buffer: 数据
+        :return: bool 是否成功
+        """
+        while buffer:
+            sent = client.send(buffer)
+            buffer = buffer[sent:]
+        return True
+
+    def recv_all(self, client, length, timeout=-1) -> bytes:
+        """
+        从 instrument client 接收长度为 length 的 buffer
+        成功时表示整块数据都被接收
+        :param client: instrument client(C对象）
+        :param length: 数据长度
+        :return: 长度为 length 的 buffer, 失败时返回 None
+        """
+        received = 0
+        ret = b''
+        rb = None
+        while len(ret) < length:
+            err = 0
+            l = length - len(ret)
+            if l > 8192: l = 8192
+            
+            try:
+                if timeout > 0:
+                    client.settimeout(timeout/1000) # 毫秒, 需要转成秒
+                    rb = client.recv(l)
+                    client.settimeout(None)
+                else:
+                    rb = client.recv(l)
+            except socket.timeout:
+                pass
+
+            if not rb:
+                return None
+            ret += rb
+        return ret
+        pass
+    
+    def pre_start(self, rpc):
+        def challenge(res):
+            #print("challenge:")
+            bb = auxiliary_to_pyobject(res.raw.get_auxiliary_at(0))
+            #hexdump(bb)
+            key = self._psk.encode('utf-8')
+            bb = bytes(bb)
+            d = aes_256_cbc_decrypt(bb, key)
+            #print(d)
+            out = aes_256_cbc_encrypt(d[:-1] + b'ack\x00', key)
+            #hexdump(out)
+            self._done.set()
+            return out
+        rpc.register_callback("challenge:", challenge)
+        print("[WIRELESS] challange callback registered")
+
+    def post_start(self, rpc):
+        self._done.wait()
+        pass
 
 class DTXUSBTransport:
     """
@@ -756,6 +936,12 @@ class DTXUSBTransport:
                 return None
             ret += rb[:received.value]
         return ret
+        pass
+    
+    def pre_start(self, rpc):
+        pass
+
+    def post_start(self, rpc):
         pass
 
 class InstrumentRPCParseError:
@@ -841,9 +1027,13 @@ class InstrumentRPC:
         启动 instrument rpc 服务
         :return: bool 是否成功
         """
+        if self._running:
+            return True
         self._running = True
         self._recv_thread = Thread(target=self._receiver, name="InstrumentRecevier")
+        self._is.pre_start(self)
         self._recv_thread.start()
+        self._is.post_start(self)
         return True
 
     def stop(self):
@@ -852,7 +1042,9 @@ class InstrumentRPC:
         :return: 无返回值
         """
         self._running = False
-        self._recv_thread.join()
+        if self._recv_thread:
+            self._recv_thread.join()
+            self._recv_thread = None
         pass
     
     def register_callback(self, selector, callback):
@@ -966,7 +1158,12 @@ class InstrumentRPC:
 
                 if selector and type(selector) is str and selector in self._callbacks:
                     try:
-                        self._callbacks[selector](InstrumentRPCResult(dtx))
+                        ret = self._callbacks[selector](InstrumentRPCResult(dtx))
+                        if dtx.expects_reply:
+                            reply = dtx.new_reply()
+                            reply.set_selector(pyobject_to_selector(ret))
+                            reply._payload_header.flags = 0x3
+                            self._is.send_dtx(self._cli, reply)
                     except:
                         traceback.print_exc()
                 else:
@@ -982,7 +1179,59 @@ class InstrumentRPC:
             self._sync_waits[wait_key]['event'].set()
         
                         
-                
+def instrument_main(device, opts):
+    device_service = DeviceService()
+    if opts.wireless:
+        rpc = get_wireless_rpc(device)
+    else:
+        rpc = get_usb_rpc(device)
+    if not rpc:
+        print("failed to init rpc")
+        device_service.free_device(device)
+        return
+    try:
+        if opts.instrument_cmd == 'channels':
+            cmd_channels(rpc)
+        elif opts.instrument_cmd == 'sysmontap':
+            cmd_sysmontap(rpc)
+        elif opts.instrument_cmd == 'graphics':
+            cmd_graphics(rpc)
+        elif opts.instrument_cmd == 'running':
+            cmd_running(rpc)
+        elif opts.instrument_cmd == 'codec':
+            cmd_codec(rpc)
+        elif opts.instrument_cmd == 'timeinfo':
+            cmd_timeinfo(rpc)
+        elif opts.instrument_cmd == 'execname':
+            cmd_execname(rpc, opts.pid)
+        elif opts.instrument_cmd == 'monitor':
+            cmd_monitor(rpc, opts.pid, opts.network)
+        elif opts.instrument_cmd == 'activity':
+            cmd_activity(rpc, opts.pid)
+        elif opts.instrument_cmd == 'networking':
+            cmd_networking(rpc)
+        elif opts.instrument_cmd == 'energy':
+            cmd_energy(rpc, opts.pid)
+        elif opts.instrument_cmd == 'netstat':
+            cmd_netstat(rpc, opts.pid)
+        elif opts.instrument_cmd == 'kill':
+            cmd_kill(rpc, opts.pid)
+        elif opts.instrument_cmd == 'coreprofile':
+            cmd_coreprofile(rpc)
+        elif opts.instrument_cmd == 'power':
+            cmd_power(rpc)
+        elif opts.instrument_cmd == 'wireless':
+            cmd_wireless(rpc)
+        elif opts.instrument_cmd == 'launch':
+            cmd_launch(rpc, opts.bundleid)
+        else:
+            # print("unknown cmd:", opts.instrument_cmd)
+            test(rpc)
+    except:
+        traceback.print_exc()
+    rpc.deinit()
+    device_service.free_device(device)
+    return                
 
 def main():
     parser = argparse.ArgumentParser()

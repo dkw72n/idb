@@ -35,11 +35,12 @@ class DeviceService(Service):
         idevice_get_device_list_extended(pointer(device_list_p), pointer(device_count))
         for i in range(device_count.value):
             device = device_list_p[i].contents
-            result.append({
-                "udid": device.udid.decode("UTF-8"),
-                "conn_type": device.conn_type,
-                "conn_data": device.conn_data,
-            })
+            if device.conn_type == 1: # USB
+                result.append({
+                    "udid": device.udid.decode("UTF-8"),
+                    "conn_type": device.conn_type,
+                    "conn_data": device.conn_data,
+                })
         idevice_device_list_extended_free(device_list_p)
         return result
 

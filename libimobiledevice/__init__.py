@@ -117,7 +117,14 @@ EVP_EncryptFinal_ex.argtypes = [c_void_p, c_void_p, POINTER(c_int)]
 EVP_DecryptInit_ex = libcrypto.EVP_DecryptInit_ex
 EVP_DecryptInit_ex.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_void_p]
 
+EVP_DecryptUpdate = libcrypto.EVP_DecryptUpdate
+EVP_DecryptUpdate.argtypes = [c_void_p, c_void_p, POINTER(c_int), c_void_p, c_int]
 
+EVP_DecryptFinal_ex = libcrypto.EVP_DecryptFinal_ex
+EVP_DecryptFinal_ex.argtypes = [c_void_p, c_void_p, POINTER(c_int)]
+
+EVP_aes_256_cbc = libcrypto.EVP_aes_256_cbc
+EVP_aes_256_cbc.restype = c_void_p
 # --------------------------------- IDevice -----------------------------------------
 
 
