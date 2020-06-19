@@ -188,7 +188,7 @@ def enable_Wireless(udid,enable = 1):
     device = _get_device_or_die(udid)
     lockdown_service = LockdownService()
     client = lockdown_service.new_client(device)
-    lockdown_service.enable_wireless(client,int(enable),"A3F0A50F-96BC-54E9-AFED-08960FCFB75D","8E32E7B0-8D6D-4911-BF4E-D4370BF13871")
+    lockdown_service.enable_wireless(client,int(enable),"","")
     lockdown_service.free_client(client)
 
 def orientation_to_str(orientation):
@@ -443,7 +443,6 @@ def install_ipa(udid, ipa_path):
     apps = installation_proxy_service.install(device, client, ipa_path)
     print("finsih install")
     installation_proxy_service.free_client(client)
-
         
 def uninstall_ipa(udid, bundle_id):
     device = _get_device_or_die(udid)
@@ -453,6 +452,9 @@ def uninstall_ipa(udid, bundle_id):
     apps = installation_proxy_service.uninstall(device, client, bundle_id)
     print("finsih install")
     installation_proxy_service.free_client(client)
+
+def start_heartbeat(udid):
+    DeviceService.start_heartbeat(udid)
 
 def main():
     argparser = argparse.ArgumentParser()
@@ -505,6 +507,8 @@ def main():
     cmd_wireless = cmd_parser.add_parser("enableWireless")
     cmd_wireless.add_argument("-e", "--enable", required=False)
 
+    cmd_parser.add_parser("heartbeat")
+
     argparser.add_argument("-u", "--udid", help="udid")
 
     ## install
@@ -552,6 +556,8 @@ def main():
         install_ipa(args.udid, args.ipa_path)
     elif args.command == 'uninstall':
         uninstall_ipa(args.udid, args.bundle_id)
+    elif args.command == 'heartbeat':
+        start_heartbeat(args.udid)
     else:
         argparser.print_usage()
 
