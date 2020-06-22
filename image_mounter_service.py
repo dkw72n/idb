@@ -71,7 +71,7 @@ class ImageMounterService(Service):
 
         ret = mobile_image_mounter_mount_image_file(client, image_path.encode("utf-8"),  image_signature_file.encode("utf-8"), image_type.encode("utf-8"), pointer(plist_p))
         if ret != MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS:
-            return False
+            return False, "Can not mount image, error code %d" % ret
 
         data = read_data_from_plist_ptr(plist_p)
         if "Error" in data:
