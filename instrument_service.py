@@ -695,10 +695,10 @@ def get_usb_rpc(device):
         return None
     return rpc
 
-def get_wireless_rpc(device):
+def get_wireless_rpc(device, timeout = 30):
     ret, name, psk = start_wireless_mode(device)
     #print(f"ret = {ret}, psk = {psk}")
-    addresses, port = wait_for_wireless_device(name, 30)
+    addresses, port = wait_for_wireless_device(name, timeout)
     #print(f"addrs = {addresses}, port = {port}")
     rpc = init_wireless_rpc(addresses, port, psk)
     #print(f"rpc = {rpc}")
