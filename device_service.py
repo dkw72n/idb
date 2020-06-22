@@ -83,14 +83,16 @@ class DeviceService(Service):
             control['running'] = False
         t = threading.Thread(target = start_heartbeat)
         t.start()
-        try:
-            while control['running']:
-                time.sleep(1)
-        except:
-            pass
-        finally:
-            control['running'] = False
-            t.join()
+        control['thread'] = t
+        #try:
+        #    while control['running']:
+        #        time.sleep(1)
+        #except:
+        #    pass
+        #finally:
+        #    control['running'] = False
+        #    t.join()
+        return control
 
     def new_device(self, udid):
         """

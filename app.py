@@ -454,7 +454,15 @@ def uninstall_ipa(udid, bundle_id):
     installation_proxy_service.free_client(client)
 
 def start_heartbeat(udid):
-    DeviceService.start_heartbeat(udid)
+    control = DeviceService.start_heartbeat(udid)
+    try:
+        while control['running']:
+            time.sleep(1)
+    except:
+        pass
+    finally:
+        control['running'] = False
+        control['thread'].join()
 
 def main():
     argparser = argparse.ArgumentParser()
