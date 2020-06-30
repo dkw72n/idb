@@ -339,7 +339,7 @@ def cmd_networking(rpc):
     headers = {
         0: ['InterfaceIndex', "Name"],
         1: ['LocalAddress', 'RemoteAddress', 'InterfaceIndex', 'Pid', 'RecvBufferSize', 'RecvBufferUsed', 'SerialNumber', 'Kind'],
-        2: ['RxPackets', 'RxBytes', 'TxPackets', 'TxBytes', 'RxDups', 'RxOOO', 'TxRetx', 'MinRTT', 'AvgRTT', 'ConnectionSerial']
+        2: ['RxPackets', 'RxBytes', 'TxPackets', 'TxBytes', 'RxDups', 'RxOOO', 'TxRetx', 'MinRTT', 'AvgRTT', 'ConnectionSerial', 'Time']
     }
     msg_type = {
         0: "interface-detection",
@@ -372,6 +372,7 @@ def cmd_networking(rpc):
                 return f"[{inet_ntop(AF_INET6, self.addr)}]:{htons(self.port)}"
 
         data = res.parsed
+        print("cmd_networking data", data)
         if data[0] == 1:
             if len(data[1][0]) == 16:
                 data[1][0] = str(SockAddr4.from_buffer_copy(data[1][0]))
