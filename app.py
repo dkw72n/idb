@@ -137,10 +137,10 @@ def print_get_value(udid, key=None):
 def print_diagnostics(udid, name): # name = ["AppleSmartBattery" >= 13.0 , "AppleARMPMUCharger" < 13.0]
     device = _get_device_or_die(udid)
 
-    installation_proxy_service = DiagnosticsRelayService()
-    installation_proxy_client = installation_proxy_service.new_client(device)
-    if installation_proxy_client:
-        data = installation_proxy_service.query_ioregistry_entry(installation_proxy_client, name, "")
+    diagnostics_relay_service = DiagnosticsRelayService()
+    diagnostics_relay_client = diagnostics_relay_service.new_client(device)
+    if diagnostics_relay_client:
+        data = diagnostics_relay_service.query_ioregistry_entry(diagnostics_relay_client, name, "")
         print(data)
         if data and len(data) >= 2:
             if data[0]:
@@ -154,8 +154,8 @@ def print_diagnostics(udid, name): # name = ["AppleSmartBattery" >= 13.0 , "Appl
                     power = current * voltage / 1000
                     print("[Battery] time=%d, current=%d, voltage=%d, power=%d, temperature=%d" % (update_time, current, voltage, power, temperature))
 
-        installation_proxy_service.goodbye(installation_proxy_client)
-        installation_proxy_service.free_client(installation_proxy_client)
+        diagnostics_relay_service.goodbye(diagnostics_relay_client)
+        diagnostics_relay_service.free_client(diagnostics_relay_client)
 
 
 def get_app_list(device):
