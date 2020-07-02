@@ -829,4 +829,43 @@ heartbeat_receive.restype = c_int
 #heartbeat_error_t heartbeat_receive_with_timeout(heartbeat_client_t client, plist_t * plist, uint32_t timeout_ms);
 heartbeat_receive_with_timeout = libimobiledevice.heartbeat_receive_with_timeout
 heartbeat_receive_with_timeout.argtypes = [c_void_p, POINTER(c_void_p), c_uint32]
-heartbeat_receive_with_timeout.restype = c_int 
+heartbeat_receive_with_timeout.restype = c_int
+
+
+
+
+# --------------------------------- AFC -----------------------------------------
+
+class DiagnosticsRelayError(IntEnum):
+    DIAGNOSTICS_RELAY_E_SUCCESS         =  0
+    DIAGNOSTICS_RELAY_E_INVALID_ARG     = -1
+    DIAGNOSTICS_RELAY_E_PLIST_ERROR     = -2
+    DIAGNOSTICS_RELAY_E_MUX_ERROR       = -3
+    DIAGNOSTICS_RELAY_E_UNKNOWN_REQUEST = -4
+    DIAGNOSTICS_RELAY_E_UNKNOWN_ERROR   = -256
+
+class DiagnosticsRelayAction(IntEnum):
+    DIAGNOSTICS_RELAY_ACTION_FLAG_WAIT_FOR_DISCONNECT = 1 << 1
+    DIAGNOSTICS_RELAY_ACTION_FLAG_DISPLAY_PASS = 1 << 2
+    DIAGNOSTICS_RELAY_ACTION_FLAG_DISPLAY_FAIL = 1 << 3
+
+
+# diagnostics_relay_error_t diagnostics_relay_client_start_service(idevice_t device, diagnostics_relay_client_t* client, const char* label);
+diagnostics_relay_client_start_service = libimobiledevice.diagnostics_relay_client_start_service
+diagnostics_relay_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+diagnostics_relay_client_start_service.restype = c_int
+
+# diagnostics_relay_error_t diagnostics_relay_client_free(diagnostics_relay_client_t client);
+diagnostics_relay_client_free = libimobiledevice.diagnostics_relay_client_free
+diagnostics_relay_client_free.argtypes = [c_void_p]
+diagnostics_relay_client_free.restype = c_int
+
+# diagnostics_relay_error_t diagnostics_relay_goodbye(diagnostics_relay_client_t client);
+diagnostics_relay_goodbye = libimobiledevice.diagnostics_relay_goodbye
+diagnostics_relay_goodbye.argtypes = [c_void_p]
+diagnostics_relay_goodbye.restype = c_int
+
+# diagnostics_relay_error_t diagnostics_relay_query_ioregistry_entry(diagnostics_relay_client_t client, const char* name, const char* class, plist_t* result);
+diagnostics_relay_query_ioregistry_entry = libimobiledevice.diagnostics_relay_query_ioregistry_entry
+diagnostics_relay_query_ioregistry_entry.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_void_p)]
+diagnostics_relay_query_ioregistry_entry.restype = c_int

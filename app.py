@@ -9,7 +9,7 @@ import datetime
 from afc_service import AfcService
 from device_service import DeviceService
 from installation_proxy_service import InstallationProxyService
-from lockdown_service import LockdownService
+from diagnostics_relay_service import DiagnosticsRelayService
 from libimobiledevice import IDeviceConnectionType, SbservicesInterfaceOrientation
 from instrument_service import instrument_main, setup_parser as setup_instrument_parser
 from screenshotr_service import ScreenshotrService
@@ -133,6 +133,29 @@ def print_get_value(udid, key=None):
         print("%s: %s" % (key, values))
     lockdown_service.free_client(lockdown_client)
     device_service.free_device(device)
+
+def print_diagnostics(udid, name):
+    device = _get_device_or_die(udid)
+
+    installation_proxy_service = DiagnosticsRelayService()
+    installation_proxy_client = installation_proxy_service.new_client(device)
+    if installation_proxy_client:
+        data = installation_proxy_service.query_ioregistry_entry(installation_proxy_client, name, "")
+        print(data)
+        if data and len(data) >= 2:
+            if data[0]:
+                if "IORegistry" in data[1]:
+                    io_registry = data[1]["IORegistry"]
+                    update_time = io_registry['UpdateTime'] if "UpdateTime" in io_registry else None
+                    voltage = io_registry['Voltage']  if "Voltage" in io_registry else None
+                    instant_amperage = io_registry['InstantAmperage'] if "InstantAmperage" in io_registry else None
+                    temperature = io_registry['Temperature'] if "Temperature" in io_registry else None
+                    current = instant_amperage * -1
+                    power = current * voltage / 1000
+                    print("[Battery] time=%d, current=%d, voltage=%d, power=%d, temperature=%d" % (update_time, current, voltage, power, temperature))
+
+        installation_proxy_service.goodbye(installation_proxy_client)
+        installation_proxy_service.free_client(installation_proxy_client)
 
 
 def get_app_list(device):
@@ -511,6 +534,11 @@ def main():
     # instrument
     instrument_parser = cmd_parser.add_parser("instrument")
     setup_instrument_parser(instrument_parser)
+    # diagnostics
+    diagnostics_parser = cmd_parser.add_parser("diagnostics")
+    diagnostics_subcmd_parsers = diagnostics_parser.add_subparsers(dest="diagnostics_cmd")
+    diagnostics_ioregentry_parser = diagnostics_subcmd_parsers.add_parser("ioregentry")
+    diagnostics_ioregentry_parser.add_argument("key")
 
     cmd_wireless = cmd_parser.add_parser("enableWireless")
     cmd_wireless.add_argument("-e", "--enable", required=False)
@@ -566,6 +594,11 @@ def main():
         uninstall_ipa(args.udid, args.bundle_id)
     elif args.command == 'heartbeat':
         start_heartbeat(args.udid)
+    elif args.command == 'diagnostics':
+        if args.diagnostics_cmd == "ioregentry":
+            print_diagnostics(args.udid, args.key)
+        else:
+            print("unknown diagnostics cmd:", args.diagnostics_cmd, "support cmds:", ["ioregentry"])
     else:
         argparser.print_usage()
 
