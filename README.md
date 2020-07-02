@@ -521,3 +521,16 @@ $ idb -u 97006ebdc8bc5daed2e354f4addae4fd2a81c52d:10.11.255.115 heartbeat
 ```
 $ idb -u 97006ebdc8bc5daed2e354f4addae4fd2a81c52d:10.11.255.115 deviceinfo
 ``` 
+
+
+## diagnostics
+
+iOS >= 13.0 
+```
+$ idb diagnostics AppleSmartBattery
+```
+
+iOS < 13.0 
+```
+$ idb diagnostics AppleARMPMUCharger
+```
