@@ -134,7 +134,7 @@ def print_get_value(udid, key=None):
     lockdown_service.free_client(lockdown_client)
     device_service.free_device(device)
 
-def print_diagnostics(udid, name):
+def print_diagnostics(udid, name): # name = ["AppleSmartBattery" >= 13.0 , "AppleARMPMUCharger" < 13.0]
     device = _get_device_or_die(udid)
 
     installation_proxy_service = DiagnosticsRelayService()
