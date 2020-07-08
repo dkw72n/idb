@@ -462,6 +462,11 @@ Feb 18 16:44:37 Sans-iPhone wifid(WiFiPolicy)[45] <Notice>: __WiFiLQAMgrLogStats
 ```
 $ idb ls /
 Downloads Books Photos Recordings DCIM iTunesRestore iTunes_Control MediaAnalysis PhotoData PublicStaging Purchases 
+
+$ idb ls /  --bundle="com.seasun.tmgp.jx3m" (optional )-d = 1
+List of directory /Documents//:
+whalesdk-cs debug3.json .DS_Store MSDKINFO.sqlite ss_tmp xgserialization.b 
+
 ```
 
 ## Make directory
@@ -469,6 +474,10 @@ Downloads Books Photos Recordings DCIM iTunesRestore iTunes_Control MediaAnalysi
 ```
 $ idb mkdir /Temp
 Make directory /Temp Success
+
+$ idb mkdir /Temp --bundle="com.seasun.tmgp.jx3m" -d = 1
+Make directory /Temp Success
+
 ```
 
 ## Delete file or directory 
@@ -476,6 +485,10 @@ Make directory /Temp Success
 ```
 $ idb rm /Temp
 /Temp Deleted.
+
+$ idb rm /Temp --bundle="com.seasun.tmgp.jx3m" -d = 1
+/Temp Deleted.
+
 ```
 
 ## Push file into device
@@ -483,6 +496,10 @@ $ idb rm /Temp
 ```
 $ idb push test.txt /Temp
 push file test.txt to /Temp
+
+$ idb push test.txt /Temp  --bundle="com.seasun.tmgp.jx3m" -d = 1
+push file test.txt to /Temp
+
 ```
 
 
@@ -491,6 +508,10 @@ push file test.txt to /Temp
 ```
 $ idb pull /Temp/test.txt
 pull file F:\lds\project\idb\test.txt
+
+$ idb pull /Temp/test.txt  --bundle="com.seasun.tmgp.jx3m" -d = 1
+pull file F:\lds\project\idb\test.txt
+
 ```
 
 ## Install ipa into device

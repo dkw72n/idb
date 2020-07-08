@@ -869,3 +869,48 @@ diagnostics_relay_goodbye.restype = c_int
 diagnostics_relay_query_ioregistry_entry = libimobiledevice.diagnostics_relay_query_ioregistry_entry
 diagnostics_relay_query_ioregistry_entry.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_void_p)]
 diagnostics_relay_query_ioregistry_entry.restype = c_int
+
+
+# --------------------------------- house_arrest -----------------------------------------
+
+class HouseArrestErrorType(IntEnum):
+    HOUSE_ARREST_E_SUCCESS       =  0,
+    HOUSE_ARREST_E_INVALID_ARG   = -1,
+    HOUSE_ARREST_E_PLIST_ERROR   = -2,
+    HOUSE_ARREST_E_CONN_FAILED   = -3,
+    HOUSE_ARREST_E_INVALID_MODE  = -4,
+    HOUSE_ARREST_E_UNKNOWN_ERROR = -256
+
+# house_arrest_error_t house_arrest_client_new(idevice_t device, lockdownd_service_descriptor_t service, house_arrest_client_t *client);
+house_arrest_client_new = libimobiledevice.house_arrest_client_new
+house_arrest_client_new.argtypes = [c_void_p, c_void_p, POINTER(c_void_p)]
+house_arrest_client_new.restype = c_int
+
+house_arrest_client_free = libimobiledevice.house_arrest_client_free
+house_arrest_client_free.argtypes = [c_void_p, c_void_p, POINTER(c_void_p)]
+house_arrest_client_free.restype = c_int
+
+# house_arrest_client_start_service(idevice_t device, house_arrest_client_t* client, const char* label);
+house_arrest_client_start_service = libimobiledevice.house_arrest_client_start_service
+house_arrest_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+house_arrest_client_start_service.restype = c_int
+
+# house_arrest_client_free(house_arrest_client_t client);
+house_arrest_client_free = libimobiledevice.house_arrest_client_free
+house_arrest_client_free.argtypes = [c_void_p]
+house_arrest_client_free.restype = c_int
+
+# house_arrest_error_t house_arrest_send_command(house_arrest_client_t client, const char *command, const char *appid);
+house_arrest_send_command = libimobiledevice.house_arrest_send_command
+house_arrest_send_command.argtypes = [c_void_p, c_char_p, c_char_p]
+house_arrest_send_command.restype = c_int
+
+# house_arrest_error_t house_arrest_get_result(house_arrest_client_t client, plist_t *dict);
+house_arrest_get_result = libimobiledevice.house_arrest_get_result
+house_arrest_get_result.argtypes = [c_void_p, POINTER(c_void_p)]
+house_arrest_get_result.restype = c_int
+
+#afc_error_t afc_client_new_from_house_arrest_client(house_arrest_client_t client, afc_client_t *afc_client);
+afc_client_new_from_house_arrest_client = libimobiledevice.afc_client_new_from_house_arrest_client
+afc_client_new_from_house_arrest_client.argtypes = [c_void_p, POINTER(c_void_p)]
+afc_client_new_from_house_arrest_client.restype = c_int

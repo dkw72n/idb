@@ -8,6 +8,7 @@ import datetime
 
 from afc_service import AfcService
 from device_service import DeviceService
+from house_arrest_proxy_service import House_arrest_proxy_service
 from installation_proxy_service import InstallationProxyService
 from diagnostics_relay_service import DiagnosticsRelayService
 from libimobiledevice import IDeviceConnectionType, SbservicesInterfaceOrientation
@@ -360,12 +361,35 @@ def print_syslog(udid = None):
     syslog_relay_service.free_client(syslog_relay_client)
     device_service.free_device(device)
 
+def get_house_arrest_Client(device, device_directory, bundle_id, docType):
+    print(bundle_id)
+    if docType == None:
+        docType = 1
 
-def print_list(udid, device_directory = "."):
+    house_arrest_service = House_arrest_proxy_service()
+    client = house_arrest_service.new_client(device)
+    afc_client = house_arrest_service.open_sandbox_with_appid(client, docType, bundle_id)
+
+    if docType == 1:
+        root = "/Documents/"
+        if device_directory == "/":
+            device_directory = ""
+        elif device_directory.startswith("/"):
+            root = "/Documents"
+
+        device_directory = root + device_directory
+
+    return client, afc_client, device_directory
+
+# docType = 1: sharing documents ,else: sandBox
+def print_list(udid, device_directory = ".", bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
-
     afc_service = AfcService()
-    afc_client = afc_service.new_client(device)
+    if bundle_id == None:
+        afc_client = afc_service.new_client(device)
+    else:
+        client, afc_client, device_directory = get_house_arrest_Client(device, device_directory, bundle_id, docType)
+
     file_list = afc_service.read_directory(afc_client, device_directory)
     print("List of directory %s:" % device_directory)
     if file_list:
@@ -374,13 +398,19 @@ def print_list(udid, device_directory = "."):
 
     afc_service.free_client(afc_client)
     device_service.free_device(device)
+    if client != None:
+        House_arrest_proxy_service.free_client(client)
 
 
-def pull_file(udid, remote_file): # TODO: pull directory
+def pull_file(udid, remote_file , bundle_id = None, docType = 1): # TODO: pull directory
     device = _get_device_or_die(udid)
 
     afc_service = AfcService()
-    afc_client = afc_service.new_client(device)
+    if bundle_id == None:
+        afc_client = afc_service.new_client(device)
+    else:
+        client, afc_client, remote_file = get_house_arrest_Client(device, remote_file, bundle_id, docType)
+
 
     afc_file = afc_service.open_file(afc_client, remote_file, "r")
     output_file = os.path.join(ROOT_DIR, os.path.basename(remote_file))
@@ -396,16 +426,21 @@ def pull_file(udid, remote_file): # TODO: pull directory
     device_service.free_device(device)
     print("pull file %s" % output_file)
 
+    if client != None:
+        House_arrest_proxy_service.free_client(client)
 
-def push_file(udid, local_file, device_directory):
+
+def push_file(udid, local_file, device_directory, bundle_id = None, docType = 1):
     if not os.path.exists(local_file):
         print("Error: %s is not exists" % local_file)
         return
 
     device = _get_device_or_die(udid)
-
     afc_service = AfcService()
-    afc_client = afc_service.new_client(device)
+    if bundle_id == None:
+        afc_client = afc_service.new_client(device)
+    else:
+        client, afc_client, device_directory = get_house_arrest_Client(device, device_directory, bundle_id, docType)
 
     success = afc_service.make_directory(afc_client, device_directory) # TODO: check
     remote_file = device_directory + "/" + os.path.basename(local_file)
@@ -420,27 +455,40 @@ def push_file(udid, local_file, device_directory):
     afc_file.close()
     afc_service.free_client(afc_client)
     device_service.free_device(device)
+
+    if client != None:
+        House_arrest_proxy_service.free_client(client)
+
     print("push file %s to %s" % (local_file, remote_file))
 
 
-def make_directory(udid, device_directory):
+def make_directory(udid, device_directory, bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
 
     afc_service = AfcService()
-    afc_client = afc_service.new_client(device)
+    if bundle_id == None:
+        afc_client = afc_service.new_client(device)
+    else:
+        client, afc_client, device_directory = get_house_arrest_Client(device, device_directory, bundle_id, docType)
+
 
     result = afc_service.make_directory(afc_client, device_directory)
     print("Make directory %s %s" % (device_directory, "Success" if result else "Fail"))
 
     afc_service.free_client(afc_client)
     device_service.free_device(device)
+    if client != None:
+        House_arrest_proxy_service.free_client(client)
 
 
-def remove_path(udid, device_path):
+def remove_path(udid, device_path, bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
 
     afc_service = AfcService()
-    afc_client = afc_service.new_client(device)
+    if bundle_id == None:
+        afc_client = afc_service.new_client(device)
+    else:
+        client, afc_client, device_path = get_house_arrest_Client(device, device_path, bundle_id, docType)
 
     result = False
     error = None
@@ -456,6 +504,8 @@ def remove_path(udid, device_path):
 
     afc_service.free_client(afc_client)
     device_service.free_device(device)
+    if client != None:
+        House_arrest_proxy_service.free_client(client)
 
 def install_ipa(udid, ipa_path):
 
@@ -500,19 +550,32 @@ def main():
     # list
     list_parser = cmd_parser.add_parser("ls")
     list_parser.add_argument("device_directory")
+    list_parser.add_argument("--bundle_id", required=False )
+    list_parser.add_argument("-d", "--docType", required=False, type=int, help='default 1,1 for sharing documents other for sandBox')
+
     # mkdir
     list_parser = cmd_parser.add_parser("mkdir")
     list_parser.add_argument("device_directory")
+    list_parser.add_argument("--bundle_id", required=False )
+    list_parser.add_argument("-d", "--docType", required=False, type=int, help='default 1,1 for sharing documents other for sandBox')
+    
     # rm
     list_parser = cmd_parser.add_parser("rm")
     list_parser.add_argument("device_path")
+    list_parser.add_argument("--bundle_id", required=False )
+    list_parser.add_argument("-d", "--docType", required=False, type=int, help='default 1,1 for sharing documents other for sandBox')
     # pull file
     pull_parser = cmd_parser.add_parser("pull")
     pull_parser.add_argument("remote_file")
+    pull_parser.add_argument("--bundle_id", required=False )
+    pull_parser.add_argument("-d", "--docType", required=False, type=int, help='default 1,1 for sharing documents other for sandBox')
+
     # push file
     push_parser = cmd_parser.add_parser("push")
     push_parser.add_argument("local_file")
     push_parser.add_argument("device_directory")
+    push_parser.add_argument("--bundle_id", required=False )
+    push_parser.add_argument("-d", "--docType", required=False, type=int, help='default 1,1 for sharing documents other for sandBox')
     # imagemounter
     lookupimage_parser = cmd_parser.add_parser("lookupimage")
     lookupimage_parser.add_argument("-t", "--image_type", required=False)
@@ -577,15 +640,15 @@ def main():
     elif args.command == 'instrument':
         instrument_main(_get_device_or_die(args.udid), args)
     elif args.command == 'ls':
-        print_list(args.udid, args.device_directory)
+        print_list(args.udid, args.device_directory, args.bundle_id, args.docType)
     elif args.command == 'mkdir':
-        make_directory(args.udid, args.device_directory)
+        make_directory(args.udid, args.device_directory, args.bundle_id, args.docType)
     elif args.command == 'rm':
-        remove_path(args.udid, args.device_path)
+        remove_path(args.udid, args.device_path, args.bundle_id, args.docType)
     elif args.command == 'pull':
-        pull_file(args.udid, args.remote_file)
+        pull_file(args.udid, args.remote_file, args.bundle_id, args.docType)
     elif args.command == 'push':
-        push_file(args.udid, args.local_file, args.device_directory)
+        push_file(args.udid, args.local_file, args.device_directory, args.bundle_id, args.docType)
     elif args.command == 'enableWireless':
         enable_Wireless(args.udid, args.enable)
     elif args.command == 'install':
