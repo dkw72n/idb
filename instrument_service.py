@@ -537,10 +537,80 @@ def cmd_launch(rpc, bundleid):
     rpc.start()
     channel = "com.apple.instruments.server.services.processcontrol"
     rpc.register_channel_callback(channel, on_channel_message)
-    print("start", rpc.call(channel, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", "", bundleid, {}, [], {"StartSuspendedKey":0,"KillExisting":1}).parsed)
+    pid = rpc.call(channel, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", "", bundleid, {}, [], {"StartSuspendedKey":0,"KillExisting":1}).parsed
+    print("start", pid)
+    #rpc.stop()
+    
+def test(rpc):
+    def on_channel_message(res):
+        i=0
+        #print(type(res))
+        #print(res.plist)
+        # print(res.xml)
+        
+       
+    rpc.start()
+    bundleid="com.jimmy.test12"
+    obj_channel = "com.apple.instruments.server.services.objectalloc"
+    channel1 = "com.apple.instruments.server.services.processcontrolbydictionary"
+    app = "com.apple.instruments.server.services.device.applictionListing"
+    device_channel = "com.apple.instruments.server.services.deviceinfo"
+    noti = "com.apple.instruments.server.services.mobilenotifications"
+
+    rpc.register_channel_callback(obj_channel, on_channel_message)
+    rpc.register_channel_callback(channel1, on_channel_message)
+    rpc.register_channel_callback(app, on_channel_message)
+    rpc.register_channel_callback(device_channel, on_channel_message)
+    rpc.register_channel_callback(noti, on_channel_message)
+
+   # print("setApplicationStateNotificationsEnabled",rpc.call(noti, "setApplicationStateNotificationsEnabled:",True).parsed )
+   # print("setMemoryNotificationsEnabled",rpc.call(noti, "setMemoryNotificationsEnabled:",True).parsed )
+    
+    appList = rpc.call(app, "installedApplicationsMatching:registerUpdateToken:",{},"").parsed 
+    bundlePath = ""
+    appStat={}
+    for i in appList:
+        if i['CFBundleIdentifier'] == bundleid:
+            bundlePath = i["BundlePath"]
+            appStat = i
+            print("app",i)
+
+    tmp = rpc.call(obj_channel, "preparedEnvironmentForLaunch:eventsMask:",{},"1335693056").parsed
+
+    tmp["DYLD_PRINT_TO_STDERR"]='1'
+    tmp["OS_ACTIVITY_DT_MODE"]='1'
+    tmp["HIPreventRefEncoding"]='1'
+    print("launch config",bundlePath,bundleid,tmp['OAWaitForSetupByPid'])
+
+    config = {'OAKeepAllocationStatistics': 'YES', 'DYLD_PRINT_TO_STDERR': '1', 'OAWaitForSetupByPid': "0", 'DYLD_INSERT_LIBRARIES': '/Developer/Library/PrivateFrameworks/DVTInstrumentsFoundation.framework/liboainject.dylib', 'OAAllocationStatisticsOutputMask': '0x4f9d0f00', 'OS_ACTIVITY_DT_MODE': '1', 'HIPreventRefEncoding': '1'}
+
+    pid = rpc.call(channel1, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", bundlePath, bundleid, tmp, [],{'StartSuspendedKey': True}).parsed
+    
+    print("start",str(pid),rpc.call(channel1,"startObservingPid:",str(pid)).parsed)
+    print("start Co", rpc.call(obj_channel, "startCollectionWithPid:",str(pid)).parsed) 
+    print("start res",rpc.call(channel1,"resumePid:",str(pid)).parsed)
+
+    print("start res",rpc.call(device_channel,"execnameForPid:","0").parsed)
+    print("start res",rpc.call(device_channel,"machKernelName").parsed)
+
+    state=0
+    try:
+        while 1:
+            state +=1
+            res = rpc.call(device_channel,"symbolicatorSignatureForPid:trackingSelector:", str(pid),"dyldNotificationReceived:").parsed
+            print("start symb", len(res))
+            
+            time.sleep(1)
+    except:
+        pass
+
+    print("stop res",rpc.call(obj_channel,"stopCollection").parsed)
+    print("stop stopObservingPid",rpc.call(channel1,"stopObservingPid:",str(pid)).parsed)
+
     rpc.stop()
 
-def test(rpc):
+
+def test1(rpc):
 
     done = Event()
     def _notifyOfPublishedCapabilities(res):
