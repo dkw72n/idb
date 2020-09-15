@@ -385,6 +385,7 @@ def get_house_arrest_Client(device, device_directory, bundle_id, docType):
 def print_list(udid, device_directory = ".", bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
     afc_service = AfcService()
+    client = None
     if bundle_id == None:
         afc_client = afc_service.new_client(device)
     else:
@@ -406,6 +407,7 @@ def pull_file(udid, remote_file , bundle_id = None, docType = 1): # TODO: pull d
     device = _get_device_or_die(udid)
 
     afc_service = AfcService()
+    client = None
     if bundle_id == None:
         afc_client = afc_service.new_client(device)
     else:
@@ -437,6 +439,7 @@ def push_file(udid, local_file, device_directory, bundle_id = None, docType = 1)
 
     device = _get_device_or_die(udid)
     afc_service = AfcService()
+    client = None
     if bundle_id == None:
         afc_client = afc_service.new_client(device)
     else:
@@ -464,7 +467,7 @@ def push_file(udid, local_file, device_directory, bundle_id = None, docType = 1)
 
 def make_directory(udid, device_directory, bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
-
+    client = None
     afc_service = AfcService()
     if bundle_id == None:
         afc_client = afc_service.new_client(device)
@@ -483,7 +486,7 @@ def make_directory(udid, device_directory, bundle_id = None, docType = 1):
 
 def remove_path(udid, device_path, bundle_id = None, docType = 1):
     device = _get_device_or_die(udid)
-
+    client = None
     afc_service = AfcService()
     if bundle_id == None:
         afc_client = afc_service.new_client(device)
