@@ -13,8 +13,8 @@ from enum import Enum, IntEnum, IntFlag
 if sys.platform == 'win32':
     libplist_plus = None
     libssl = None
-    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist.dll"))
-    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.dll"))
+    libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist-2.0.dll"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice-1.0.dll"))
     libcrypto = libimobiledevice
     libusbmuxd = libimobiledevice
 elif sys.platform.startswith('linux'):
