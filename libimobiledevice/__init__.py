@@ -20,7 +20,7 @@ if sys.platform == 'win32':
 elif sys.platform.startswith('linux'):
     libplist_plus = None
     libssl = None
-    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice.so.6.0.0"))
+    libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice-1.0.so.6.0.0"))
     libcrypto = libimobiledevice
     libplist = libimobiledevice
     libusbmuxd = libimobiledevice
