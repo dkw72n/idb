@@ -194,7 +194,7 @@ def cmd_sysmontap(rpc):
     # print("set", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamplingRate:", 40.0).parsed) # 没反应
     rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {
         'ur': 1000, 
-        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead'], 
+        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead', 'diskBytesWritten'],# , 'diskReadOps', , 'diskWriteOps'], 
         'bm': 0, 
         'cpuUsage': True, 
         'sampleInterval': 1000000000}) # 改这个也没反应
