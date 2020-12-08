@@ -48,6 +48,7 @@ class ImageMounterService(Service):
         if ret != MobileImageMounterError.MOBILE_IMAGE_MOUNTER_E_SUCCESS:
             return False, "Can not lookup image, error code %d" % ret
 
+
         data = read_data_from_plist_ptr(plist_p)
         plist_free(plist_p)
         if data is None:
@@ -56,9 +57,8 @@ class ImageMounterService(Service):
         if "Error" in data:
             error = data['Error']
             return False, error
-
         if compare_version(product_version, "10.0") >= 0:
-            return "ImageSignature" in data, None
+            return "ImageSignature" in data and len(data["ImageSignature"]) != 0, None
         else:
             return data['ImagePresent'] if "ImagePresent" in data else False, None
 
