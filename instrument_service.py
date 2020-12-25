@@ -1068,6 +1068,7 @@ class InstrumentRPC:
         self._receiver_exiting = False
         self._unhanled_callback = None
         self._channel_callbacks = {}
+        self._lock = threading.Lock()
 
     def init(self, transport, arg):
         """
@@ -1188,7 +1189,8 @@ class InstrumentRPC:
             self._sync_waits[wait_key] = param
         #print("perfcat => ios")
         #hexdump(dtx.to_bytes())
-        self._is.send_dtx(self._cli, dtx) # TODO: protect this line with mutex
+        with self._lock:
+          self._is.send_dtx(self._cli, dtx)
         if sync:
             param['event'].wait()
             ret = param['result']
@@ -1234,7 +1236,8 @@ class InstrumentRPC:
                             reply = dtx.new_reply()
                             reply.set_selector(pyobject_to_selector(ret))
                             reply._payload_header.flags = 0x3
-                            self._is.send_dtx(self._cli, reply)
+                            with self._lock:
+                              self._is.send_dtx(self._cli, reply)
                     except:
                         traceback.print_exc()
                 else:
