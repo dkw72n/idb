@@ -1117,6 +1117,7 @@ class InstrumentRPC:
         if self._recv_thread:
             self._recv_thread.join()
             self._recv_thread = None
+            self._receiver_exiting = False
         pass
     
     def register_callback(self, selector, callback):
