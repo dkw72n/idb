@@ -619,6 +619,26 @@
       "hwType": "Apple A9X"
     }
   },
+  "iPad6,11": {
+    "productType": "iPad6,11",
+    "deviceType": "iPad 5",
+    "resInfo": [
+      2048,
+      1536
+    ],
+    "batteryInfo": [
+      3770,
+      10307
+    ],
+    "gpuInfo": "PowerVR 7XT Series (6-core)",
+    "cpuInfo": {
+      "coreNum": 2,
+      "maxCpuFreq": 1850000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple-designed ARMv8-A 64-bit",
+      "hwType": "Apple A9"
+    }
+  },
   "iPad7,1": {
     "productType": "iPad7,1",
     "deviceType": "iPad Pro (12.9, 2nd gen)",
@@ -739,6 +759,26 @@
       "hwType": "Apple A10 Fusion"
     }
   },
+  "iPad7,11": {
+    "productType": "iPad7,11",
+    "deviceType": "iPad 7th Gen (WiFi)",
+    "resInfo": [
+      2160,
+      1620
+    ],
+    "batteryInfo": [
+      3770,
+      8827
+    ],
+    "gpuInfo": "PowerVR 7XT Plus (six-core graphics)",
+    "cpuInfo": {
+      "coreNum": 4,
+      "maxCpuFreq": 2390000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A10 Fusion 64-bit",
+      "hwType": "Apple A10 Fusion"
+    }
+  },
   "iPad8,1": {
     "productType": "iPad8,1",
     "deviceType": "iPad Pro (11 inch)",
@@ -777,6 +817,46 @@
       "minCpuFreq": 0.0,
       "processor": "Apple A12X",
       "hwType": "Apple A12X"
+    }
+  },
+  "iPad11,1": {
+    "productType": "iPad11,1",
+    "deviceType": "iPad Mini 5",
+    "resInfo": [
+      2048,
+      1536
+    ],
+    "batteryInfo": [
+      3790,
+      8134
+    ],
+    "gpuInfo": "A12 Bionic(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2390000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12 Bionic 64-bit",
+      "hwType": "Apple A12 Bionic"
+    }
+  },
+  "iPad11,3": {
+    "productType": "iPad11,3",
+    "deviceType": "iPad Air 3",
+    "resInfo": [
+      2048,
+      1536
+    ],
+    "batteryInfo": [
+      3790,
+      8134
+    ],
+    "gpuInfo": "Apple A9X/M9",
+    "cpuInfo": {
+      "coreNum": 3,
+      "maxCpuFreq": 2260000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A9X/M9",
+      "hwType": "Apple A9X/M9"
     }
   },
   "iPhone1,1": {
@@ -1477,6 +1557,267 @@
       "minCpuFreq": 0.0,
       "processor": "Apple A13",
       "hwType": "Apple A13"
+    }
+  },
+  "iPhone12,8": {
+    "productType": "iPhone12,8",
+    "deviceType": "iPhone SE 2",
+    "resInfo": [
+      1334,
+      750
+    ],
+    "batteryInfo": [
+      3820,
+      1821
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2660000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A13",
+      "hwType": "Apple A13"
+    }
+  },
+  "iPhone13,1": {
+    "productType": "iPhone13,1",
+    "deviceType": "iPhone 12 mini",
+    "resInfo": [
+      2340,
+      1080
+    ],
+    "batteryInfo": [
+      3820,
+      2227
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
+    }
+  },
+  "iPhone13,2": {
+    "productType": "iPhone13,2",
+    "deviceType": "iPhone 12",
+    "resInfo": [
+      2532,
+      1170
+    ],
+    "batteryInfo": [
+      3820,
+      2815
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
+    }
+  },
+  "iPhone13,3": {
+    "productType": "iPhone13,3",
+    "deviceType": "iPhone 12 Pro",
+    "resInfo": [
+      2532,
+      1170
+    ],
+    "batteryInfo": [
+      3820,
+      2815
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
+    }
+  },
+  "iPhone13,4": {
+    "productType": "iPhone13,4",
+    "deviceType": "iPhone 12 Pro Max",
+    "resInfo": [
+      2778,
+      1284
+    ],
+    "batteryInfo": [
+      3820,
+      3687
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
+    }
+  },
+
+  "iPad8,11": {
+    "productType": "iPad8,11",
+    "deviceType": "iPad Pro (12.9, 4th gen)",
+    "resInfo": [
+      2732,
+      2048
+    ],
+    "batteryInfo": [
+      3770,
+      10875
+    ],
+    "gpuInfo": "Apple GPU(8-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 8,
+      "maxCpuFreq": 2490000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12Z",
+      "hwType": "Apple A12Z"
+    }
+  },
+  "iPad8,12": {
+    "productType": "iPad8,12",
+    "deviceType": "iPad Pro (12.9, 4th gen)",
+    "resInfo": [
+      2732,
+      2048
+    ],
+    "batteryInfo": [
+      3770,
+      10875
+    ],
+    "gpuInfo": "Apple GPU(8-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 8,
+      "maxCpuFreq": 2490000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12Z",
+      "hwType": "Apple A12Z"
+    }
+  },
+  "iPad8,9": {
+    "productType": "iPad8,9",
+    "deviceType": "iPad Pro (11, 2nd gen)",
+    "resInfo": [
+      2388,
+      1668
+    ],
+    "batteryInfo": [
+      3820,
+      7812
+    ],
+    "gpuInfo": "Apple GPU(8-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 8,
+      "maxCpuFreq": 2490000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12Z",
+      "hwType": "Apple A12Z"
+    }
+  },
+  "iPad8,10": {
+    "productType": "iPad8,10",
+    "deviceType": "iPad Pro (11, 2nd gen)",
+    "resInfo": [
+      2388,
+      1668
+    ],
+    "batteryInfo": [
+      3820,
+      7812
+    ],
+    "gpuInfo": "Apple GPU(8-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 8,
+      "maxCpuFreq": 2490000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12Z",
+      "hwType": "Apple A12Z"
+    }
+  },
+  "iPad11,6": {
+    "productType": "iPad11,6",
+    "deviceType": "iPad 8nd gen",
+    "resInfo": [
+      2160,
+      1620
+    ],
+    "batteryInfo": [
+      3770,
+      8827
+    ],
+    "gpuInfo": "A12 Bionic(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2390000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12 Bionic 64-bit",
+      "hwType": "Apple A12 Bionic"
+    }
+  },
+  "iPad11,7": {
+    "productType": "iPad11,7",
+    "deviceType": "iPad 8nd gen",
+    "resInfo": [
+      2160,
+      1620
+    ],
+    "batteryInfo": [
+      3770,
+      8827
+    ],
+    "gpuInfo": "A12 Bionic(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2390000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A12 Bionic 64-bit",
+      "hwType": "Apple A12 Bionic"
+    }
+  },
+  "iPad13,1": {
+    "productType": "iPad13,1",
+    "deviceType": "iPad Air 4th gen",
+    "resInfo": [
+      2360,
+      1640
+    ],
+    "batteryInfo": [
+      3770,
+      8827
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
+    }
+  },
+  "iPad13,2": {
+    "productType": "iPad13,2",
+    "deviceType": "iPad Air 4th gen",
+    "resInfo": [
+      2360,
+      1640
+    ],
+    "batteryInfo": [
+      3770,
+      8827
+    ],
+    "gpuInfo": "Apple GPU(4-Core GPU)",
+    "cpuInfo": {
+      "coreNum": 6,
+      "maxCpuFreq": 2990000.0,
+      "minCpuFreq": 0.0,
+      "processor": "Apple A14",
+      "hwType": "Apple A14"
     }
   }
 }
