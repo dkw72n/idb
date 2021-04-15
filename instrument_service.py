@@ -1206,8 +1206,8 @@ class InstrumentRPC:
             dtx = self._is.recv_dtx(self._cli, 1000) # ms
             if dtx is None:
                 cur = time.time()
-                if cur - last_none < 0.1:
-                    # print("fail too soon")
+                if cur - last_none < 0.01:
+                    print("fail too soon")
                     break
                 last_none = cur
                 continue
