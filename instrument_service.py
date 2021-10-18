@@ -98,6 +98,12 @@ A4 03 B0 03 B5 03 BA 03 C7 03 CA 03 CF 03 E1 03 E4 03 E9 00 00 00 00 00 00 02 01
 00 00 00 00 00 00 67
 """)
 
+sendbin = load_byte_from_hexdump("""
+F0 01 00 00 00 00 00 00 4C 00 00 00 00 00 00 00 0A 00 00 00 06 00 00 00 00 00 00 00 00 00 00 00 
+0A 00 00 00 06 00 00 00 03 00 00 00 00 00 00 00 0A 00 00 00 06 00 00 00 00 00 00 00 00 00 00 00 
+0A 00 00 00 06 00 00 00 FF FF FF FF FF FF FF FF 0A 00 00 00 03 00 00 00 FF FF FF FF
+""")
+
 coreprofile_cfg = load_byte_from_hexdump("""
 0a 00 00 00 02 00 00 00 08 04 00 00 62 70 6c 69 73 74 30 30 d4 01 02 03 04 05 70 71 72 58 24 6f
 62 6a 65 63 74 73 58 24 76 65 72 73 69 6f 6e 59 24 61 72 63 68 69 76 65 72 54 24 74 6f 70 af 10
@@ -141,8 +147,11 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("sysmontap")
     instrument_cmd_parsers.add_parser("graphics")
     instrument_cmd_parsers.add_parser("running")
+    instrument_cmd_parsers.add_parser("gpuInfo")
     instrument_cmd_parsers.add_parser("codec")
     instrument_cmd_parsers.add_parser("timeinfo")
+    p = instrument_cmd_parsers.add_parser("gpuCounters")
+    p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("execname")
     p.add_argument("pid", type=float)
     p = instrument_cmd_parsers.add_parser("activity")
@@ -163,7 +172,9 @@ def setup_parser(parser):
     instrument_cmd_parsers.add_parser("power")
     instrument_cmd_parsers.add_parser("wireless")
 
-    instrument_cmd_parsers.add_parser("test")
+    p = instrument_cmd_parsers.add_parser("test")
+    p.add_argument("pid", type=float)
+    p.add_argument("--network", default=True, action='store_true')
 
 def cmd_channels(rpc):
     done = Event()
@@ -284,6 +295,14 @@ def cmd_monitor(rpc, pid, network_stat = True):
     rpc.stop()
     time.sleep(1)
 
+def cmd_gpuInfo(rpc):
+    rpc.start()
+    running = rpc.call("com.apple.instruments.server.services.gpu", "requestDeviceGPUInfo").parsed
+    print("requestDeviceGPUInfo:",running)
+    # headers = '\t'.join(sorted(running[0].keys()))
+    # print(headers)
+    rpc.stop()
+
 def cmd_running(rpc):
     rpc.start()
     running = rpc.call("com.apple.instruments.server.services.deviceinfo", "runningProcesses").parsed
@@ -293,6 +312,44 @@ def cmd_running(rpc):
     for item in running:
         sorted_item = sorted(item.items())
         print('\t'.join(map(str, [v for _, v in sorted_item])))
+    
+    rpc.stop()
+
+
+def cmd_gpuCounters(rpc,PID):
+    import json
+    
+    def on_callback_message(res):
+        ts = str(time.time())
+        ind = 0
+
+        for i in res.parsed:
+            if isinstance(i,int) or isinstance(i,str):
+                with open("{0}_{1}_{2}.txt".format(ts,len(res.parsed),ind),"w+") as f1:
+                    f1.write(str(i))
+                f1.close()
+            elif isinstance(i,bytearray):
+                with open("{0}_{1}_{2}.bin".format(ts,ind),"wb+") as f1:
+                    f1.write(i)
+                f1.close()
+            ind += 1
+                    
+
+        print("[ACTIVITY]", res.parsed)
+        
+    channels = "com.apple.instruments.server.services.gpu"
+    rpc.start()
+    
+    ret = rpc.call(channels, "requestDeviceGPUInfo").parsed
+    print(ret)
+    # counters = ret[0]["displays"][0]["accelerator-id"]
+    #configureCounters:counterProfile:interval:windowLimit:tracingPID:](DTGPUService *self, SEL a2, unsigned __int64 a3, unsigned int a4, unsigned __int64 a5, unsigned __int64 a6, int a7)
+    ret = rpc.call(channels, "configureCounters:counterProfile:interval:windowLimit:tracingPID:",IRawSLArg(0,3,0,0),-1).parsed
+    print(ret)
+    rpc.register_channel_callback(channels, on_callback_message)
+    print(rpc.call(channels, "startCollectingCounters").parsed)
+    while 1: 
+        time.sleep(1)
     rpc.stop()
 
 def cmd_codec(rpc):
@@ -300,6 +357,18 @@ def cmd_codec(rpc):
     rpc.start()
     codecs = rpc.call("com.apple.instruments.server.services.deviceinfo", selector).parsed
     print(codecs)
+    rpc.stop()
+
+def cmd_timeinfo(rpc):
+    rpc.start()
+    machTimeInfo = rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed
+    print("machTimeInfo:", {
+        "mach_absolute_time": machTimeInfo[0],
+        "mach_timebase_info": {
+            "number": machTimeInfo[1],
+            "denom": machTimeInfo[2]
+        }
+    })
     rpc.stop()
 
 def cmd_timeinfo(rpc):
@@ -540,8 +609,14 @@ def cmd_launch(rpc, bundleid):
     pid = rpc.call(channel, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", "", bundleid, {}, [], {"StartSuspendedKey":0,"KillExisting":1}).parsed
     print("start", pid)
     #rpc.stop()
+def test(rpc, pid, network_stat = True):    
+    import threading
+    import time
+    thread_hi = threading.Thread(target=cmd_monitor, args=(rpc, pid, network_stat))
+    thread_hi.start()
+    time.sleep(1000000)
     
-def test(rpc):
+def test2(rpc):
     def on_channel_message(res):
         i=0
         #print(type(res))
@@ -1024,6 +1099,10 @@ class InstrumentRPCRawArg:
     def __init__(self, data:bytes):
         self.data = data
 
+class IRawSLArg(InstrumentRPCRawArg):
+    def __init__(self, *data):
+        self.data = data
+
 class InstrumentRPCResult:
     def __init__(self, dtx):
         self.raw = dtx
@@ -1179,9 +1258,14 @@ class InstrumentRPC:
         dtx.channel_code = channel_id
         dtx.set_selector(pyobject_to_selector(selector))
         wait_key = (dtx.channel_code, dtx.identifier)
-        for aux in auxiliaries:
-            if type(aux) is InstrumentRPCRawArg:
-                dtx.add_auxiliary(aux.data)
+        for aux in auxiliaries:# IRawSLArg(0,3,0,-1), -1
+            if isinstance(aux,InstrumentRPCRawArg):
+                if isinstance(aux,IRawSLArg):
+                    for i in aux.data:
+                        dtx.add_auxiliary(pyobject_to_auxiliary(i,True))
+                    
+                else:
+                    dtx.add_auxiliary(aux.data)
             else:
                 dtx.add_auxiliary(pyobject_to_auxiliary(aux))
         if sync:
@@ -1277,6 +1361,10 @@ def instrument_main(device, opts):
             cmd_codec(rpc)
         elif opts.instrument_cmd == 'timeinfo':
             cmd_timeinfo(rpc)
+        elif opts.instrument_cmd == 'gpuInfo':
+            cmd_gpuInfo(rpc)
+        elif opts.instrument_cmd == 'gpuCounters':
+            cmd_gpuCounters(rpc, opts.pid)
         elif opts.instrument_cmd == 'execname':
             cmd_execname(rpc, opts.pid)
         elif opts.instrument_cmd == 'monitor':
@@ -1301,7 +1389,7 @@ def instrument_main(device, opts):
             cmd_launch(rpc, opts.bundleid)
         else:
             # print("unknown cmd:", opts.instrument_cmd)
-            test(rpc)
+            test(rpc, opts.pid, opts.network)
     except:
         traceback.print_exc()
     rpc.deinit()
@@ -1329,4 +1417,5 @@ if __name__ == '__main__':
     #for i in d._auxiliaries:
     #    #print(auxiliary_to_pyobject(i))
     #    hexdump(i)
+   
     main()

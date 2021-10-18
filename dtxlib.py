@@ -140,6 +140,9 @@ class DTXMessage:
                 elif t == 4: # int64_t
                     ret._auxiliaries.append(buffer[cursor + i: cursor + i + 16])
                     i += 16
+                elif t == 6:
+                    ret._auxiliaries.append(buffer[cursor + i: cursor + i + 16])
+                    i += 16
                 elif t == 3:
                     ret._auxiliaries.append(buffer[cursor + i: cursor + 12])
                     i += 12
@@ -249,8 +252,14 @@ class DTXMessage:
 def ns_keyed_archiver(obj):
     return archiver.archive(obj)
 
-def pyobject_to_auxiliary(var):
+
+def pyobject_to_auxiliary(var, isNoneSign = False):
+    if isNoneSign:
+        return struct.pack('<iiq', 0xa, 6, var)
+
     if type(var) is int:
+        if isNoneSign:
+            return
         if abs(var) < 2**32:
             return struct.pack('<iii', 0xa, 3, var)
         elif abs(var) < 2**64:
@@ -274,6 +283,9 @@ def auxiliary_to_pyobject(aux):
         return n
     elif t == 4:
         n, = struct.unpack("<q", aux[8:16])
+        return n
+    elif t == 6:
+        n, = struct.unpack("<Q", aux[8:16])
         return n
     else:
         raise ValueError("unknown auxiliary type")
