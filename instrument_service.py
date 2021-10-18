@@ -344,7 +344,7 @@ def cmd_gpuCounters(rpc,PID):
     print(ret)
     # counters = ret[0]["displays"][0]["accelerator-id"]
     #configureCounters:counterProfile:interval:windowLimit:tracingPID:](DTGPUService *self, SEL a2, unsigned __int64 a3, unsigned int a4, unsigned __int64 a5, unsigned __int64 a6, int a7)
-    ret = rpc.call(channels, "configureCounters:counterProfile:interval:windowLimit:tracingPID:",IRawSLArg(0,3,0,0),-1).parsed
+    ret = rpc.call(channels, "configureCounters:counterProfile:interval:windowLimit:tracingPID:",IRawSLArg(0,1,0,0),-1).parsed
     print(ret)
     rpc.register_channel_callback(channels, on_callback_message)
     print(rpc.call(channels, "startCollectingCounters").parsed)
