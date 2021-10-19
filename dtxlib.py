@@ -11,7 +11,7 @@ def div_floor(p: int, q: int) -> int:
 def _get_fragment_count_by_length(length):
     if length <= 65504: # 2**16 - sizeof(DTXMessageHeader)
         return 1
-    
+
 class DTXMessageHeader(Structure):
     _fields_ = [
         ('magic', c_uint32),
@@ -87,7 +87,7 @@ class DTXMessage:
         self._payload_header.totalLength += delta
         pass
 
-    
+
     @classmethod
     def from_bytes(self, buffer: bytes):
         cursor = 0
@@ -100,13 +100,13 @@ class DTXMessage:
         has_payload = ret._message_header.length > 0
         if not has_payload:
             return ret
-        
+
         if ret._message_header.length != len(buffer) - cursor - (ret._message_header.fragmentCount - 1) * sizeof(DTXMessageHeader):
             raise ValueError("incorrect DTXMessageHeader->length")
 
         if ret._message_header.fragmentCount == 1:
             payload_buf = buffer[cursor:]
-        else: 
+        else:
             assert ret._message_header.fragmentCount >= 3
             while cursor < len(buffer):
                 subhdr = DTXMessageHeader.from_buffer_copy(buffer[cursor: cursor + sizeof(DTXMessageHeader)])
@@ -213,7 +213,7 @@ class DTXMessage:
         ret.identifier = self.identifier
         ret.conversation_index = self.conversation_index + 1
         return ret
-    
+
     @property
     def conversation_index(self):
         return self._message_header.conversationIndex
@@ -235,7 +235,7 @@ class DTXMessage:
     @property
     def identifier(self):
         return self._message_header.identifier
-    
+
     @identifier.setter
     def identifier(self, identifier:int):
         self._message_header.identifier = identifier
@@ -257,28 +257,28 @@ class AuxType(object):
     def __init__(self, value):
         self._value = value
 
-    def to_bytes(self) -> bytes:
+    def pack(self) -> bytes:
         pass
 
 class AuxUInt32(AuxType):
-    def to_bytes(self) -> bytes:
+    def pack(self) -> bytes:
         return struct.pack('<iiI', 0xa, 3, self._value)
 
 class AuxUInt64(AuxType):
-    def to_bytes(self) -> bytes:
+    def pack(self) -> bytes:
         return struct.pack('<iiQ', 0xa, 4, self._value)
 
 class AuxInt32(AuxType):
-    def to_bytes(self) -> bytes:
+    def pack(self) -> bytes:
         return struct.pack('<iii', 0xa, 5, self._value)
 
 class AuxInt64(AuxType):
-    def to_bytes(self) -> bytes:
+    def pack(self) -> bytes:
         return struct.pack('<iiq', 0xa, 6, self._value)
 
 def pyobject_to_auxiliary(var):
-    if isinstance(var, AuxType):
-        return var.to_bytes()
+    if isinstance(var, object) and hasattr(var, "pack"):
+        return var.pack()
     elif type(var) is int:
         if abs(var) < 2**32:
             return struct.pack('<iii', 0xa, 3, var)
@@ -326,7 +326,7 @@ if __name__ == '__main__':
     print(h0.magic, h0.fragmentCount, h0.fragmentId, h0.length)
     h1 = DTXMessageHeader.from_buffer_copy(buf[sz:sz+sz])
     print(h1.magic, h1.fragmentCount, h1.fragmentId, h1.length)
-    
+
     hexdump(buf[:100])
     hexdump(buf[h1.length + sz + sz:][:100])
     DTXMessage.from_bytes(buf)
