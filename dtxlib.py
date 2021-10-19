@@ -253,13 +253,33 @@ def ns_keyed_archiver(obj):
     return archiver.archive(obj)
 
 
-def pyobject_to_auxiliary(var, isNoneSign = False):
-    if isNoneSign:
-        return struct.pack('<iiq', 0xa, 6, var)
+class AuxType(object):
+    def __init__(self, value):
+        self._value = value
 
-    if type(var) is int:
-        if isNoneSign:
-            return
+    def to_bytes(self) -> bytes:
+        pass
+
+class AuxUInt32(AuxType):
+    def to_bytes(self) -> bytes:
+        return struct.pack('<iiI', 0xa, 3, self._value)
+
+class AuxUInt64(AuxType):
+    def to_bytes(self) -> bytes:
+        return struct.pack('<iiQ', 0xa, 4, self._value)
+
+class AuxInt32(AuxType):
+    def to_bytes(self) -> bytes:
+        return struct.pack('<iii', 0xa, 5, self._value)
+
+class AuxInt64(AuxType):
+    def to_bytes(self) -> bytes:
+        return struct.pack('<iiq', 0xa, 6, self._value)
+
+def pyobject_to_auxiliary(var):
+    if isinstance(var, AuxType):
+        return var.to_bytes()
+    elif type(var) is int:
         if abs(var) < 2**32:
             return struct.pack('<iii', 0xa, 3, var)
         elif abs(var) < 2**64:

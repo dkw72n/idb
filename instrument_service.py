@@ -9,6 +9,7 @@ import uuid
 import threading
 from zeroconf import ServiceBrowser, Zeroconf
 from utils import aes_256_cbc_decrypt, aes_256_cbc_encrypt
+import os
 
 from device_service import DeviceService
 from libimobiledevice import            \
@@ -21,7 +22,8 @@ from libimobiledevice import            \
 
 from dtxlib import DTXMessage, DTXMessageHeader,    \
     auxiliary_to_pyobject, pyobject_to_auxiliary,   \
-    pyobject_to_selector, selector_to_pyobject
+    pyobject_to_selector, selector_to_pyobject, \
+    AuxUInt32, AuxUInt64, AuxInt32, AuxInt64
 from bpylist import archiver, bplist
 from utils import parse_plist_to_xml
 import struct
@@ -317,38 +319,26 @@ def cmd_running(rpc):
 
 
 def cmd_gpuCounters(rpc,PID):
-    import json
-    
+
     def on_callback_message(res):
-        ts = str(time.time())
-        ind = 0
+        if type(res.parsed) == list:
+            print(res.parsed)
 
-        for i in res.parsed:
-            if isinstance(i,int) or isinstance(i,str):
-                with open("{0}_{1}_{2}.txt".format(ts,len(res.parsed),ind),"w+") as f1:
-                    f1.write(str(i))
-                f1.close()
-            elif isinstance(i,bytearray):
-                with open("{0}_{1}_{2}.bin".format(ts,ind),"wb+") as f1:
-                    f1.write(i)
-                f1.close()
-            ind += 1
-                    
-
-        print("[ACTIVITY]", res.parsed)
-        
     channels = "com.apple.instruments.server.services.gpu"
     rpc.start()
-    
-    ret = rpc.call(channels, "requestDeviceGPUInfo").parsed
-    print(ret)
-    # counters = ret[0]["displays"][0]["accelerator-id"]
-    #configureCounters:counterProfile:interval:windowLimit:tracingPID:](DTGPUService *self, SEL a2, unsigned __int64 a3, unsigned int a4, unsigned __int64 a5, unsigned __int64 a6, int a7)
-    ret = rpc.call(channels, "configureCounters:counterProfile:interval:windowLimit:tracingPID:",IRawSLArg(0,1,0,0),-1).parsed
-    print(ret)
     rpc.register_channel_callback(channels, on_callback_message)
-    print(rpc.call(channels, "startCollectingCounters").parsed)
-    while 1: 
+
+    machTimeInfo = rpc.call("com.apple.instruments.server.services.deviceinfo", "machTimeInfo").parsed
+    print("machTimeInfo", machTimeInfo)
+
+    ret = rpc.call(channels, "requestDeviceGPUInfo").parsed
+    print("requestDeviceGPUInfo", ret)
+    #counters = ret[0]["displays"][0]["accelerator-id"]
+    #configureCounters:counterProfile:interval:windowLimit:tracingPID:](DTGPUService *self, SEL a2, unsigned __int64 a3, unsigned int a4, unsigned __int64 a5, unsigned __int64 a6, int a7)
+    ret = rpc.call(channels, "configureCounters:counterProfile:interval:windowLimit:tracingPID:", AuxInt64(0), AuxInt64(3), AuxInt64(0), AuxInt64(-1), AuxUInt32(4294967295)).parsed
+    print(ret)
+    print("startCollectingCounters", rpc.call(channels, "startCollectingCounters").parsed)
+    while 1:
         time.sleep(1)
     rpc.stop()
 
@@ -1260,12 +1250,7 @@ class InstrumentRPC:
         wait_key = (dtx.channel_code, dtx.identifier)
         for aux in auxiliaries:# IRawSLArg(0,3,0,-1), -1
             if isinstance(aux,InstrumentRPCRawArg):
-                if isinstance(aux,IRawSLArg):
-                    for i in aux.data:
-                        dtx.add_auxiliary(pyobject_to_auxiliary(i,True))
-                    
-                else:
-                    dtx.add_auxiliary(aux.data)
+                dtx.add_auxiliary(aux.data)
             else:
                 dtx.add_auxiliary(pyobject_to_auxiliary(aux))
         if sync:
