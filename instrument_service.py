@@ -887,7 +887,7 @@ class DTXClientMixin:
         header = DTXMessageHeader.from_buffer_copy(header_buffer)
         if header.fragmentCount > 1 and header.fragmentId == 0:
             return header_buffer
-        body_buffer = self.recv_all(client, header.length, timeout=timeout)
+        body_buffer = self.recv_all(client, header.length, timeout=-1)  # NOTE: 如果接收到了header，并且得知紧跟着的body不为空, 那么就不能设置timeout来接收body, 必须等它接收完毕, 否则body超时没收完又去接收header，消息就错乱
         if not body_buffer:
             return None
         return header_buffer + body_buffer
