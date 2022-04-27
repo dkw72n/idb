@@ -14,9 +14,9 @@ if sys.platform == 'win32':
     libplist_plus = None
     libssl = None
     libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist-2.0.dll"))
+    libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd-2.0.dll"))
     libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice-1.0.dll"))
     libcrypto = libimobiledevice
-    libusbmuxd = libimobiledevice
 elif sys.platform.startswith('linux'):
     libplist_plus = None
     libssl = None
@@ -32,6 +32,13 @@ else : # mac os
     libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libplist.3.dylib"))
     libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "macos/libusbmuxd.6.dylib"))
 
+
+# --------------------------------- libusbmuxd -----------------------------------------
+
+# void libusbmuxd_set_debug_level(int level)
+libusbmuxd_set_debug_level = libusbmuxd.libusbmuxd_set_debug_level
+libusbmuxd_set_debug_level.argtypes = [c_int]
+libusbmuxd_set_debug_level.restype = c_void_p
 
 # --------------------------------- plist -----------------------------------------
 
@@ -243,6 +250,11 @@ idevice_free = libimobiledevice.idevice_free
 idevice_free.argtypes = [c_void_p]
 idevice_free.restype = c_int
 
+
+# void idevice_set_debug_level(int level)
+idevice_set_debug_level = libimobiledevice.idevice_set_debug_level
+idevice_set_debug_level.argtypes = [c_int]
+idevice_set_debug_level.restype = c_void_p
 
 # --------------------------------- Lockdownd -----------------------------------------
 

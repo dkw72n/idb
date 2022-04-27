@@ -12,6 +12,7 @@ from libimobiledevice import idevice_event_subscribe, idevice_event_unsubscribe
 from libimobiledevice import idevice_new_with_options, idevice_new_force_network, idevice_free
 from libimobiledevice import heartbeat_client_start_service, heartbeat_receive_with_timeout, heartbeat_send, heartbeat_client_free
 from libimobiledevice import plist_new_string, plist_new_dict, plist_dict_set_item, plist_free
+from libimobiledevice import idevice_set_debug_level
 
 import threading
 import time
@@ -28,6 +29,10 @@ class DeviceService(Service):
         self._callback = None
         self._device_changed_listeners = []
         self._subscribed = False
+
+    @staticmethod
+    def set_debug_level(level):
+        idevice_set_debug_level(level)
 
     def get_device_list(self):
         """
