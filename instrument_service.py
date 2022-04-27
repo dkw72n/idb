@@ -1058,15 +1058,23 @@ class DTXUSBTransport:
         """
         received = c_uint()
         ret = b''
-        rb = create_string_buffer(length)
-        if timeout > 0:
-            err = instrument_receive_with_timeout(client, rb, length, pointer(received), timeout)
-        else:
-            err = instrument_receive(client, rb, length, pointer(received))
-        if err != InstrumentError.INSTRUMENT_E_SUCCESS:
-            # print(f"service_receive error: {err}")
-            return None
-        ret += rb[:received.value]
+        rb = create_string_buffer(8192)
+        start_time = time.time() * 1000
+        while len(ret) < length:
+            err = 0
+            l = length - len(ret)
+            if l > 8192: l = 8192
+            if timeout > 0:
+                if ((time.time() * 1000) - start_time) > timeout:
+                    print("recv_all timeout===========================")
+                    return None # timeout
+                err = instrument_receive_with_timeout(client, rb, l, pointer(received), timeout)
+            else:
+                err = instrument_receive(client, rb, l, pointer(received))
+            if err != InstrumentError.INSTRUMENT_E_SUCCESS:
+                # print(f"service_receive error: {err}")
+                return None
+            ret += rb[:received.value]
         return ret
     
     def pre_start(self, rpc):
