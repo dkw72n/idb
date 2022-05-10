@@ -206,10 +206,10 @@ def cmd_sysmontap(rpc):
         print("[WARN] timeout waiting capabilities")
     # print("set", rpc.call("com.apple.instruments.server.services.sysmontap", "setSamplingRate:", 40.0).parsed) # 没反应
     rpc.call("com.apple.instruments.server.services.sysmontap", "setConfig:", {
-        'ur': 1000, 
-        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead', 'diskBytesWritten'],# , 'diskReadOps', , 'diskWriteOps'], 
-        'bm': 0, 
-        'cpuUsage': True, 
+        'ur': 1000,
+        'procAttrs': ['memVirtualSize', 'cpuUsage', 'ctxSwitch', 'intWakeups', 'physFootprint', 'memResidentSize', 'memAnon', 'pid', 'powerScore', 'diskBytesRead', 'diskBytesWritten'],# , 'diskReadOps', , 'diskWriteOps'],
+        'bm': 0,
+        'cpuUsage': True,
         'sampleInterval': 1000000000}) # 改这个也没反应
     rpc.register_channel_callback("com.apple.instruments.server.services.sysmontap", on_sysmontap_message)
     print("start", rpc.call("com.apple.instruments.server.services.sysmontap", "start").parsed)
@@ -314,7 +314,7 @@ def cmd_running(rpc):
     for item in running:
         sorted_item = sorted(item.items())
         print('\t'.join(map(str, [v for _, v in sorted_item])))
-    
+
     rpc.stop()
 
 
@@ -385,7 +385,7 @@ def pre_call(rpc):
         done.set()
     def dropped_message(res):
         print("[DROP]", res.parsed, res.raw.channel_code)
-    
+
     rpc.register_callback("_notifyOfPublishedCapabilities:", _notifyOfPublishedCapabilities)
     rpc.register_unhandled_callback(dropped_message)
     rpc.start()
@@ -445,7 +445,7 @@ def cmd_networking(rpc):
     rpc.register_channel_callback("com.apple.instruments.server.services.networking", on_callback_message)
     print("replay", rpc.call("com.apple.instruments.server.services.networking", "replayLastRecordedSession").parsed)
     print("start", rpc.call("com.apple.instruments.server.services.networking", "startMonitoring").parsed)
-    
+
     try:
         while 1: time.sleep(10)
     except:
@@ -460,9 +460,9 @@ def cmd_activity(rpc, pid):
 
     pre_call(rpc)
     rpc.register_channel_callback("com.apple.instruments.server.services.activity", on_callback_message)
-    
+
     print("start", rpc.call("com.apple.instruments.server.services.activity", "startSamplingWithPid:", pid).parsed)
-    
+
     try:
         while 1: time.sleep(10)
     except:
@@ -519,7 +519,7 @@ def cmd_coreprofile(rpc):
             if decoder:
                 for code, time, arg1, arg2, arg3 in decoder.decode(res.raw.get_selector()):
                     print(f"[{time}] code={code:08x} ({arg1}, {arg2}, {arg3})")
-    
+
     rpc.start()
     channel = "com.apple.instruments.server.services.coreprofilesessiontap"
     rpc.register_channel_callback(channel, on_channel_message)
@@ -599,21 +599,21 @@ def cmd_launch(rpc, bundleid):
     pid = rpc.call(channel, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", "", bundleid, {}, [], {"StartSuspendedKey":0,"KillExisting":1}).parsed
     print("start", pid)
     #rpc.stop()
-def test(rpc, pid, network_stat = True):    
+def test(rpc, pid, network_stat = True):
     import threading
     import time
     thread_hi = threading.Thread(target=cmd_monitor, args=(rpc, pid, network_stat))
     thread_hi.start()
     time.sleep(1000000)
-    
+
 def test2(rpc):
     def on_channel_message(res):
         i=0
         #print(type(res))
         #print(res.plist)
         # print(res.xml)
-        
-       
+
+
     rpc.start()
     bundleid="com.jimmy.test12"
     obj_channel = "com.apple.instruments.server.services.objectalloc"
@@ -630,8 +630,8 @@ def test2(rpc):
 
    # print("setApplicationStateNotificationsEnabled",rpc.call(noti, "setApplicationStateNotificationsEnabled:",True).parsed )
    # print("setMemoryNotificationsEnabled",rpc.call(noti, "setMemoryNotificationsEnabled:",True).parsed )
-    
-    appList = rpc.call(app, "installedApplicationsMatching:registerUpdateToken:",{},"").parsed 
+
+    appList = rpc.call(app, "installedApplicationsMatching:registerUpdateToken:",{},"").parsed
     bundlePath = ""
     appStat={}
     for i in appList:
@@ -650,9 +650,9 @@ def test2(rpc):
     config = {'OAKeepAllocationStatistics': 'YES', 'DYLD_PRINT_TO_STDERR': '1', 'OAWaitForSetupByPid': "0", 'DYLD_INSERT_LIBRARIES': '/Developer/Library/PrivateFrameworks/DVTInstrumentsFoundation.framework/liboainject.dylib', 'OAAllocationStatisticsOutputMask': '0x4f9d0f00', 'OS_ACTIVITY_DT_MODE': '1', 'HIPreventRefEncoding': '1'}
 
     pid = rpc.call(channel1, "launchSuspendedProcessWithDevicePath:bundleIdentifier:environment:arguments:options:", bundlePath, bundleid, tmp, [],{'StartSuspendedKey': True}).parsed
-    
+
     print("start",str(pid),rpc.call(channel1,"startObservingPid:",str(pid)).parsed)
-    print("start Co", rpc.call(obj_channel, "startCollectionWithPid:",str(pid)).parsed) 
+    print("start Co", rpc.call(obj_channel, "startCollectionWithPid:",str(pid)).parsed)
     print("start res",rpc.call(channel1,"resumePid:",str(pid)).parsed)
 
     print("start res",rpc.call(device_channel,"execnameForPid:","0").parsed)
@@ -664,7 +664,7 @@ def test2(rpc):
             state +=1
             res = rpc.call(device_channel,"symbolicatorSignatureForPid:trackingSelector:", str(pid),"dyldNotificationReceived:").parsed
             print("start symb", len(res))
-            
+
             time.sleep(1)
     except:
         pass
@@ -793,7 +793,7 @@ def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
 
         def remove_service(self, zeroconf, type, name):
             print("[Service] `%s` removed" % (name,))
-            
+
         def add_service(self, zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
             print(f"[Service] `{name}` added, service info: `{info}`")
@@ -806,7 +806,7 @@ def wait_for_wireless_device(name, timeout=None): # return (addresses, port)
     zeroconf = Zeroconf()
     listener = MyListener()
     browser = ServiceBrowser(zeroconf, "_19900724._tcp.local.", listener)
-    
+
     if not found.wait(timeout):
         # timeout ?
         ctx['addresses'] = []
@@ -865,7 +865,7 @@ class DTXFragment:
     @property
     def completed(self):
         return self.current_fragment_id + 1 == self._header.fragmentCount
-    
+
     @property
     def key(self):
         return (self._header.channelCode, self._header.identifier)
@@ -970,7 +970,7 @@ class DTXSockTransport:
             err = 0
             l = length - len(ret)
             if l > 8192: l = 8192
-            
+
             try:
                 if timeout > 0:
                     client.settimeout(timeout/1000) # 毫秒, 需要转成秒
@@ -986,7 +986,7 @@ class DTXSockTransport:
             ret += rb
         return ret
         pass
-    
+
     def pre_start(self, rpc):
         def challenge(res):
             #print("challenge:")
@@ -1076,7 +1076,7 @@ class DTXUSBTransport:
                 return None
             ret += rb[:received.value]
         return ret
-    
+
     def pre_start(self, rpc):
         pass
 
@@ -1125,7 +1125,7 @@ class InstrumentRPCResult:
             self.parsed = archiver.unarchive(sel)
         except:
             self.parsed = InstrumentRPCParseError()
-        
+
 class InstrumentRPC:
 
     def __init__(self):
@@ -1174,6 +1174,7 @@ class InstrumentRPC:
         if self._running:
             return True
         self._running = True
+        self._receiver_exiting = False
         self._recv_thread = Thread(target=self._receiver, name="InstrumentRecevier")
         self._is.pre_start(self)
         self._recv_thread.start()
@@ -1187,11 +1188,11 @@ class InstrumentRPC:
         """
         self._running = False
         if self._recv_thread:
+            self._receiver_exiting = True
             self._recv_thread.join()
             self._recv_thread = None
-            self._receiver_exiting = False
         pass
-    
+
     def register_callback(self, selector, callback):
         """
         注册回调, 接受 instrument server 到 client 的远程调用
