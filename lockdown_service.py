@@ -108,7 +108,11 @@ class LockdownService(Service):
         else:
 
             lockdownd_remove_value(client, "com.apple.xcode.developerdomain".encode("utf-8"), "WirelessHosts".encode("utf-8"))
-            
+
+    def get_developer_mode_status(self,client):
+        value, error = self.get_domain_Value(client, "com.apple.security.mac.amfi", "DeveloperModeStatus")
+        return value  # true or false
+
             
 
 """

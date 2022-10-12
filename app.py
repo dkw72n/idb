@@ -18,6 +18,7 @@ from spring_board_service import SpringBoardService
 from image_mounter_service import ImageMounterService
 from syslog_relay_service import SyslogRelayService
 from lockdown_service import LockdownService
+from amfi_service import AMFIService
 
 try:
     from PIL import Image
@@ -540,6 +541,26 @@ def start_heartbeat(udid):
         control['running'] = False
         control['thread'].join()
 
+def print_developer_mode_status(udid):
+    device = _get_device_or_die(udid)
+    lockdown_service = LockdownService()
+    client = lockdown_service.new_client(device)
+    result = lockdown_service.get_developer_mode_status(client)
+    print("develpoer mode status: {0}".format(result))
+    lockdown_service.free_client(client)
+
+def print_set_developer_mode(udid, mode):
+    device = _get_device_or_die(udid)
+    amfi_client_service = AMFIService()
+    amfi_client = amfi_client_service.new_client(device)
+    ret = amfi_client_service.set_developer_mode(amfi_client, int(mode))
+    if ret == 0:
+        print("set developer mode success")
+    else:
+        print("error, error code: {0}".format(ret))
+    amfi_client_service.free_client(amfi_client)
+    device_service.free_device(device)
+
 def main():
     argparser = argparse.ArgumentParser()
     # argparser.add_argument("command", help="command", choices=["devices", "deviceinfo", "devicename", "instrument"])
@@ -605,7 +626,12 @@ def main():
     diagnostics_subcmd_parsers = diagnostics_parser.add_subparsers(dest="diagnostics_cmd")
     diagnostics_ioregentry_parser = diagnostics_subcmd_parsers.add_parser("ioregentry")
     diagnostics_ioregentry_parser.add_argument("key")
-
+    # get_developer_mode_status
+    cmd_parser.add_parser("developermodestatus")
+    # AMFI set_developer_mode
+    amfi_developer_mode_parser = cmd_parser.add_parser("setdevelopermode")
+    amfi_developer_mode_parser.add_argument("-m", "--mode", required=True)
+    # enableWireless
     cmd_wireless = cmd_parser.add_parser("enableWireless")
     cmd_wireless.add_argument("-e", "--enable", required=False)
 
@@ -665,6 +691,10 @@ def main():
             print_diagnostics(args.udid, args.key)
         else:
             print("unknown diagnostics cmd:", args.diagnostics_cmd, "support cmds:", ["ioregentry"])
+    elif args.command == 'developermodestatus':
+        print_developer_mode_status(args.udid)
+    elif args.command == 'setdevelopermode':
+        print_set_developer_mode(args.udid, args.mode)
     else:
         argparser.print_usage()
 

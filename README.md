@@ -555,3 +555,13 @@ iOS < 13.0
 ```
 $ idb diagnostics AppleARMPMUCharger
 ```
+
+## developer mode
+
+```
+$ idb developermodestatus
+```
+
+```
+$ idb setdevelopermode -m 0
+```

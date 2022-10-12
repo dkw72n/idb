@@ -926,3 +926,31 @@ house_arrest_get_result.restype = c_int
 afc_client_new_from_house_arrest_client = libimobiledevice.afc_client_new_from_house_arrest_client
 afc_client_new_from_house_arrest_client.argtypes = [c_void_p, POINTER(c_void_p)]
 afc_client_new_from_house_arrest_client.restype = c_int
+
+
+# --------------------------------- AMFI -----------------------------------------
+
+class AMFIError(IntEnum):
+    AMFI_E_SUCCESS                   =  0,
+    AMFI_E_INVALID_ARG               = -1,
+    AMFI_E_PLIST_ERROR               = -2,
+    AMFI_E_CONN_FAILED               = -3,
+    AMFI_E_COMMAND_FAILED            = -4,
+    AMFI_E_DEVICE_LOCKED             = -5,
+    AMFI_E_DEVICE_HAS_A_PASSCODE_SET = -6,
+    AMFI_E_UNKNOWN_ERROR             = -256
+
+# amfi_error_t amfi_client_start_service(idevice_t device, amfi_client_t* client, const char* label);
+amfi_client_start_service = libimobiledevice.amfi_client_start_service
+amfi_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
+amfi_client_start_service.restype = c_int
+
+# amfi_error_t amfi_client_free(amfi_client_t client);
+amfi_client_free = libimobiledevice.amfi_client_free
+amfi_client_free.argtypes = [c_void_p]
+amfi_client_free.restype = c_int
+
+# amfi_error_t amfi_set_developer_mode(amfi_client_t client, int mode);
+amfi_set_developer_mode = libimobiledevice.amfi_set_developer_mode
+amfi_set_developer_mode.argtypes = [c_void_p, c_int]
+amfi_set_developer_mode.restype = c_int
