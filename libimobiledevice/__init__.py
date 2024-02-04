@@ -236,6 +236,13 @@ try:
 except:
     idevice_new_force_network = None
 
+try:
+    idevice_new_force_network_ipv6 = libimobiledevice.idevice_new_force_network_ipv6
+    idevice_new_force_network_ipv6.argtypes = [POINTER(c_void_p), c_char_p, c_char_p]
+    idevice_new_force_network_ipv6.restype = c_int
+except:
+    idevice_new_force_network_ipv6 = None
+
 # idevice_error_t idevice_free(idevice_t device);
 idevice_free = libimobiledevice.idevice_free
 idevice_free.argtypes = [c_void_p]
@@ -625,6 +632,11 @@ class InstrumentError(IntEnum):
 instrument_client_start_service = libimobiledevice.instrument_client_start_service
 instrument_client_start_service.argtypes = [c_void_p, POINTER(c_void_p), c_char_p]
 instrument_client_start_service.restype = c_int
+
+# instrument_error_t instrument_client_start_service_with_rsd(idevice_t device, instrument_client_t* client, const char* label, int lockdown_port, int service_port);
+instrument_client_start_service_with_rsd = libimobiledevice.instrument_client_start_service_with_rsd
+instrument_client_start_service_with_rsd.argtypes = [c_void_p, POINTER(c_void_p), c_char_p, c_int, c_int]
+instrument_client_start_service_with_rsd.restype = c_int
 
 # instrument_error_t instrument_client_free(instrument_client_t client);
 instrument_client_free = libimobiledevice.instrument_client_free

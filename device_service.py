@@ -9,7 +9,7 @@ from service import Service
 from libimobiledevice import IDeviceInfo, IDeviceEventCb, IDeviceOptions, IDeviceError
 from libimobiledevice import idevice_get_device_list_extended, idevice_device_list_extended_free
 from libimobiledevice import idevice_event_subscribe, idevice_event_unsubscribe
-from libimobiledevice import idevice_new_with_options, idevice_new_force_network, idevice_free
+from libimobiledevice import idevice_new_with_options, idevice_new_force_network, idevice_new_force_network_ipv6, idevice_free
 from libimobiledevice import heartbeat_client_start_service, heartbeat_receive_with_timeout, heartbeat_send, heartbeat_client_free
 from libimobiledevice import plist_new_string, plist_new_dict, plist_dict_set_item, plist_free
 from libimobiledevice import idevice_set_debug_level
@@ -99,7 +99,7 @@ class DeviceService(Service):
         #    t.join()
         return control
 
-    def new_device(self, udid):
+    def new_device(self, udid, rsd_address=None):
         """
         通过udid创建新的device对象，用于调用其他接口
         :param udid:
@@ -114,6 +114,15 @@ class DeviceService(Service):
                 if ret != IDeviceError.IDEVICE_E_SUCCESS:
                     return None
                 return device
+
+        if rsd_address is not None:
+            print(f'rsd = {rsd_address}')
+            if idevice_new_force_network_ipv6:
+                ret = idevice_new_force_network_ipv6(pointer(device), udid.encode('utf-8'), rsd_address.ip.encode('utf-8'))
+                if ret != IDeviceError.IDEVICE_E_SUCCESS:
+                    return None
+                return device
+
         options = int(IDeviceOptions.IDEVICE_LOOKUP_USBMUX | IDeviceOptions.IDEVICE_LOOKUP_NETWORK)
         ret = idevice_new_with_options(pointer(device), udid.encode("utf-8"), options)
         if ret != IDeviceError.IDEVICE_E_SUCCESS:

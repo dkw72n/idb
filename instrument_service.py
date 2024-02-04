@@ -13,7 +13,8 @@ import os
 
 from device_service import DeviceService
 from libimobiledevice import            \
-    instrument_client_start_service,    \
+    instrument_client_start_service, \
+    instrument_client_start_service_with_rsd, \
     instrument_client_free,             \
     instrument_receive,                 \
     instrument_receive_with_timeout,    \
@@ -831,6 +832,20 @@ def get_usb_rpc(device):
         return None
     return rpc
 
+
+def get_rsd_rpc(device, rsd_address):
+    rpc = InstrumentRPC()
+    def get_service_port(services, name):
+        if name in services:
+            return services[name]
+        return None
+    lockdown_port = get_service_port(rsd_address.services, "com.apple.mobile.lockdown.remote.trusted")
+    service_port = get_service_port(rsd_address.services, "com.apple.instruments.dtservicehub")
+    if not rpc.init(DTXRSDTransport, (device, lockdown_port, service_port)):
+        return None
+    return rpc
+
+
 def get_wireless_rpc(device, timeout = 30):
     ret, name, psk = start_wireless_mode(device)
     #print(f"ret = {ret}, psk = {psk}")
@@ -1082,6 +1097,26 @@ class DTXUSBTransport:
 
     def post_start(self, rpc):
         pass
+
+
+class DTXRSDTransport(DTXUSBTransport):
+
+    # override
+    def new_client(self, args):
+        """
+        创建instrument client，用于调用instrument服务的其他接口
+        :param args: 由DeviceService创建的device对象（C对象）, lockdown端口， instrument service端口
+        :return: instrument client(C对象), 在使用完毕后请务必调用free_client来释放该对象内存
+        """
+        device, lockdown_port, service_port = args
+        assert lockdown_port is not None
+        assert service_port is not None
+        client = c_void_p()
+        ret = instrument_client_start_service_with_rsd(device, pointer(client), b"PerfCat", lockdown_port, service_port)
+        if ret != InstrumentError.INSTRUMENT_E_SUCCESS:
+            return None
+        return client
+
 
 class InstrumentRPCParseError:
     pass
