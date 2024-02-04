@@ -14,6 +14,7 @@ if sys.platform == 'win32':
     libplist_plus = None
     libssl = None
     libplist = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libplist-2.0.dll"))
+    libimobiledevice_glue = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice-glue-1.0.dll"))
     libusbmuxd = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libusbmuxd-2.0.dll"))
     libimobiledevice = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "libimobiledevice-1.0.dll"))
     libcrypto = libimobiledevice
@@ -58,20 +59,10 @@ plist_to_bin = libplist.plist_to_bin
 plist_to_bin.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
 plist_to_bin.restype = None
 
-# void plist_to_bin_free(char *plist_bin);
-plist_to_bin_free = libplist.plist_to_bin_free
-plist_to_bin_free.argtypes = [c_void_p]
-plist_to_bin_free.restype = None
-
 # void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
 plist_to_xml = libplist.plist_to_xml
 plist_to_xml.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
 plist_to_xml.restype = None
-
-# void plist_to_bin_free(char *plist_bin);
-plist_to_xml_free = libplist.plist_to_xml_free
-plist_to_xml_free.argtypes = [c_void_p]
-plist_to_xml_free.restype = None
 
 # void plist_from_memory(const char *plist_bin, uint32_t length, plist_t * plist);
 plist_from_memory = libplist.plist_from_memory
@@ -610,6 +601,10 @@ sbservices_get_interface_orientation.restype = c_int
 libimobiledevice_free = libimobiledevice.libimobiledevice_free
 libimobiledevice_free.argtypes = [c_void_p]
 libimobiledevice_free.restype = None
+
+# backwards compatible
+plist_to_bin_free = libimobiledevice_free
+plist_to_xml_free = libimobiledevice_free
 
 
 # --------------------------------- Instrument -----------------------------------------
