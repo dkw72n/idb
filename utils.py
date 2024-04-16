@@ -18,13 +18,15 @@ def read_buffer_from_pointer(pointer, length):
 
 def parse_plist_to_xml(bin_data:bytes):
     plist = c_void_p()
-    plist_from_memory(bin_data, len(bin_data), pointer(plist))
+    format = c_void_p()
+    plist_from_memory(bin_data, len(bin_data), pointer(plist), pointer(format))
     plist_xml_p = c_void_p()
     length = c_int()
     plist_to_xml(plist, pointer(plist_xml_p), pointer(length))
     xml = read_buffer_from_pointer(plist_xml_p, length.value)
     plist_to_xml_free(plist_xml_p)
     plist_free(plist)
+    plist_free(format)
     return xml
 
 

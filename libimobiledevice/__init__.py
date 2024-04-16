@@ -64,9 +64,9 @@ plist_to_xml = libplist.plist_to_xml
 plist_to_xml.argtypes = [c_void_p, POINTER(c_void_p), POINTER(c_int)]
 plist_to_xml.restype = None
 
-# void plist_from_memory(const char *plist_bin, uint32_t length, plist_t * plist);
+# void plist_from_memory(const char *plist_bin, uint32_t length, plist_t * plist, plist_format_t *format);
 plist_from_memory = libplist.plist_from_memory
-plist_from_memory.argtypes = [c_void_p, c_uint32, POINTER(c_void_p)]
+plist_from_memory.argtypes = [c_void_p, c_uint32, POINTER(c_void_p), POINTER(c_void_p)]
 plist_from_memory.restype = None
 
 #plist_t plist_new_bool(uint8_t value);
